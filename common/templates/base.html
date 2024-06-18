@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}"
+    />
+    <title>{% block title %}Secure App{% endblock %}</title>
+  </head>
+  <body>
+    <div class="navbar">
+      <div class="nav-links">
+        <a href="{{ url_for('main.index') }}">Homepage</a>
+        <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+      </div>
+      {% if current_user.is_authenticated %}
+      <div class="user-info">
+        <span> Welcome, {{ current_user.username }}!</span>
+        <span class="separator">|</span>
+        <a href="{{ url_for('user.profile', user_id=current_user.id) }}"
+          >Profile</a
+        >
+        <a href="{{ url_for('auth.logout') }}">Logout</a>
+      </div>
+      {% endif %}
+    </div>
+    <div class="container">{% block content %}{% endblock %}</div>
+  </body>
+</html>

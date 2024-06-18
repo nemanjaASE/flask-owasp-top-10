@@ -22,10 +22,10 @@ pip install -r requirements.txt
 ### 3. Pokretanje aplikacije
 
 ```shell
-python app.py
+python run.py
 ```
 
-Aplikaciji se pristupa na: http://127.0.0.1:5002/
+Aplikaciji se pristupa na: http://127.0.0.1:5001/
 
 ### Napomena:
 
