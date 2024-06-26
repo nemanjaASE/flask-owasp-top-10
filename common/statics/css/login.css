@@ -95,16 +95,35 @@ a:hover {
 }
 
 .success {
-  background-color: #28a745; /* Zelena boja za uspešne poruke */
-  color: #fff; /* Bela boja teksta */
+  background-color: #28a745;
+  color: #fff;
 }
 
 .info {
-  background-color: #17a2b8; /* Plava boja za informativne poruke */
-  color: #fff; /* Bela boja teksta */
+  background-color: #17a2b8;
+  color: #fff;
 }
 
 .error,
 .message {
   color: #dc3545;
+}
+
+.password-container {
+  position: relative;
+  display: inline-block;
+}
+.toggle-button {
+  position: absolute;
+  right: 10px;
+  top: 45%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  user-select: none;
+  width: 20px;
+  height: 20px;
+}
+.toggle-button img {
+  width: 100%;
+  height: 100%;
 }

@@ -60,7 +60,26 @@
         </div>
         <div>
           {{ form.password.label }}<br />
-          {{ form.password(size=32) }}<br />
+          <div class="password-container">
+            {{ form.password(size=32, id="password" )}}
+            <span
+              class="toggle-button"
+              id="toggle-password"
+              onclick="togglePasswordVisibility()"
+            >
+              <img
+                id="eye-password-show"
+                src="{{ url_for('static', filename='img/eye-password-show.svg') }}"
+                alt="Show password"
+              />
+              <img
+                id="eye-password-hide"
+                src="{{ url_for('static', filename='img/eye-password-hide.svg') }}"
+                alt="Hide password"
+                style="display: none"
+              />
+            </span>
+          </div>
           {% if form.password.errors %}
           <ul class="error-message">
             {% for error in form.password.errors %}
@@ -68,10 +87,33 @@
             {% endfor %}
           </ul>
           {% endif %}
+          <div id="password-strength-meter">
+            <div class="strength-bar"></div>
+            <div class="strength-text"></div>
+          </div>
         </div>
         <div>
           {{ form.confirm_password.label }}<br />
-          {{ form.confirm_password(size=32) }}<br />
+          <div class="password-container">
+            {{ form.confirm_password(size=32, id="password-confirm" )}}<br />
+            <span
+              class="toggle-button"
+              id="toggle-password-confirm"
+              onclick="togglePasswordConfirmVisibility()"
+            >
+              <img
+                id="eye-password-confirm-show"
+                src="{{ url_for('static', filename='img/eye-password-show.svg') }}"
+                alt="Show password"
+              />
+              <img
+                id="eye-password-confirm-hide"
+                src="{{ url_for('static', filename='img/eye-password-hide.svg') }}"
+                alt="Hide password"
+                style="display: none"
+              />
+            </span>
+          </div>
           {% if form.confirm_password.errors %}
           <ul class="error-message">
             {% for error in form.confirm_password.errors %}
@@ -97,5 +139,7 @@
         >Already have an account? Sign In here</a
       >
     </div>
+    <script src="{{ url_for('static', filename='js/zxcvbn-ts.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/register.js') }}"></script>
   </body>
 </html>

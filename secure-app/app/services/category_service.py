@@ -1,7 +1,53 @@
+from typing import Optional, List
+
 from app.models.post import Category
+from app.repositories.category_repository import CategoryRepository
+from app.services.exceptions import *
+from app.repositories.exceptions import *
 
-def get_all_categories():
-    return Category.query.all();
+class CategoryService:
+    def __init__(self, category_repository: CategoryRepository) -> None:
+        self.category_repository = category_repository
 
-def get_category_by_name(name):
-    return Category.query.filter_by(name=name).first()
+    def get_all_categories(self) -> List[Category]:
+        """
+        Retrieves all categories.
+
+        Returns:
+            List[Category]: A list of all category objects.
+
+        Raises:
+            DatabaseServiceError: If there is a database error.
+        """
+        try:
+            return self.category_repository.get_all()
+        except DatabaseError as e:
+            raise DatabaseServiceError(e) from e
+
+    def get_category_by_name(self, name: str) -> Optional[Category]:
+        """
+        Retrieves a category by their name.
+
+        Args:
+            name (str): The name of the category to retrieve.
+
+        Returns:
+            Optional[Category]: The category object if found, otherwise None.
+
+        Raises:
+            InvalidParameterException: If the name is invalid or missing.
+            EntityNotFoundError: If the category is not found by the given name.
+            DatabaseServiceError: If there is a database error.
+        """
+        if not name or not isinstance(name, str):
+            raise InvalidParameterException("name", "Invalid or missing parameter")
+
+        try:
+            category = self.user_repository.get_by_name(name)
+            if not category:
+                raise NotFoundError(f"Category with anme {name} not found.")
+            return category
+        except NotFoundError as e:
+            raise EntityNotFoundError("Category", "name", name) from e
+        except DatabaseError as e:
+            raise DatabaseServiceError(e) from e

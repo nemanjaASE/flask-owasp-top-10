@@ -1,14 +1,10 @@
-from app import db
+import uuid
+from app.db import db
 from flask_login import UserMixin
-from app import login_manager
 from app.utils.password_utils import hash_password, check_password
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
 class User(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     first_name = db.Column(db.String(24))
     last_name = db.Column(db.String(24))
     username = db.Column(db.String(24), index=True, unique=True)

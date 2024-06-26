@@ -1,6 +1,23 @@
-from app import create_app
+from app import create_app, login_manager
+from app.services.exceptions import *
+from flask import current_app
 
 app = create_app()
+
+@login_manager.user_loader
+def load_user(user_id):
+    user_service = current_app.user_service
+
+    try:
+        return user_service.get_user(user_id)
+    except InvalidParameterException as e:
+        current_app.logger.error('User Loader: %s', (str(e),))
+    except EntityNotFoundError as e:
+        current_app.logger.error('User Loader: %s', (str(e),))
+    except DatabaseServiceError as e:
+        current_app.logger.error('User Loader: %s', (str(e),))
+    except Exception as e:
+        current_app.logger.error('Unhandled: %s', (str(e),))
 
 if __name__ == '__main__':
     app.run(port=5001)
