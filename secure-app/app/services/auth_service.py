@@ -12,10 +12,11 @@ from app.services.exceptions import *
 from typing import Optional
 
 class AuthService:
-    def __init__(self, user_service: UserService, reset_token_service: ResetTokenService, email_service: EmailService):
+    def __init__(self, user_service: UserService, reset_token_service: ResetTokenService, email_service: EmailService, redis_client):
         self.user_service = user_service
         self.reset_token_service = reset_token_service
         self.email_service = email_service
+        self.redis_client = redis_client
 
     def authenticate(self, email: str, password: str) -> Optional[User]:
         """
@@ -32,6 +33,7 @@ class AuthService:
             InvalidParameterException: If the email or password is invalid or missing.
             EntityNotFoundError: If the user is not found by the given email.
             InvalidPasswordException: If the password does not match.
+            AccountLockedException: If the account is locked due to multiple failed attempts.
             DatabaseServiceError: If there is a database error.
         """
         if not email or not isinstance(email, str):
@@ -43,9 +45,21 @@ class AuthService:
         try:
             user = self.user_service.get_user_by_email(email)
 
+            user_id = user.id
+            lockout_key = f"lockout:{user_id}"
+            failed_attempts_key = f"failed_attempts:{user_id}"
+
+            if self.redis_client.get(lockout_key):
+                raise AccountLockedException()
+
             if password_utils.check_password(password, user.password):
+                self.redis_client.delete(failed_attempts_key)
                 return user
             else:
+                failed_attempts = self.redis_client.incr(failed_attempts_key)
+                if failed_attempts >= 5:
+                    self.redis_client.set(lockout_key, "locked", ex=15*60)
+                    raise AccountLockedException()
                 raise InvalidPasswordException('Password does not match')
 
         except (InvalidParameterException, EntityNotFoundError, DatabaseServiceError) as e:

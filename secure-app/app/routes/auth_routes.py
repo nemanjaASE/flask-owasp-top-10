@@ -14,6 +14,7 @@ from app.services.exceptions import *
 from . import auth_bp
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
+@current_app.limiter.limit("5 per hour")
 def register():
     auth_service = current_app.auth_service
     pwned_service = current_app.pwned_service
@@ -46,8 +47,10 @@ def register():
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
+@current_app.limiter.limit("10 per minute")
 def login():
     auth_service = current_app.auth_service
+
     form = LoginForm()
 
     if form.validate_on_submit():
@@ -67,6 +70,9 @@ def login():
         except InvalidPasswordException as e:
             current_app.logger.error('User password: %s', (str(e),))
             flash('Wrong email or password', 'error')
+        except AccountLockedException as e:
+            current_app.logger.error('Account Locked: %s', (str(e),))
+            flash(str(e), 'error')
         except DatabaseServiceError as e:
             current_app.logger.error('Database: %s', (str(e),))
         except Exception as e:
@@ -81,6 +87,7 @@ def logout():
     return redirect(url_for('auth.login'))
 
 @auth_bp.route('/reset_request', methods=['GET', 'POST'])
+@current_app.limiter.limit("3 per minute; 10 per hour; 50 per day")
 def reset_request():
     email_service = current_app.email_service
     form = RequestResetForm()
@@ -135,5 +142,3 @@ def reset_password(token):
         current_app.logger.error('Unhandled: %s', (str(e),))
 
     return render_template('reset_password.html', form=form)
-    
-

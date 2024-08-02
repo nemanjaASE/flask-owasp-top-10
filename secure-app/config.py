@@ -9,6 +9,7 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(BASE_DIR, 'instance/secure-app.sqlite')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    REDIS_URL = os.getenv('REDIS_URL')
     DEBUG = os.getenv('DEBUG')
     MAIL_DEBUG = os.getenv('MAIL_DEBUG')
     MAIL_SERVER = os.getenv('MAIL_SERVER')
