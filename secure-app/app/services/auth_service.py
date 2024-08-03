@@ -94,9 +94,7 @@ class AuthService:
         try:
             if len(password) < 8 or len(password) > 64:
                 raise InvalidPasswordException("Password must be between 8 and 64 characters long")
-        
-            user_dto.password = password_utils.hash_password(password)
-
+            
             new_user = self.user_service.create_user(user_dto)
 
             return new_user

@@ -12,7 +12,9 @@
     <div class="navbar">
       <div class="nav-links">
         <a href="{{ url_for('main.index') }}">Homepage</a>
+        {% if current_user.role == 'Admin' %}
         <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+        {% endif %}
       </div>
       {% if current_user.is_authenticated %}
       <div class="user-info">

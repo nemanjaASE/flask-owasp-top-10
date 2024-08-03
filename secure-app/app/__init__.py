@@ -1,7 +1,7 @@
 from flask import Flask, flash, redirect, url_for
 from datetime import timedelta
 from flask_wtf import CSRFProtect
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 from flask_mail import Mail
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -22,6 +22,18 @@ login_manager.login_view = 'auth.login'
 
 logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
+
+from functools import wraps
+
+def requires_roles(*roles):
+    def wrapper(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            if current_user.role not in roles:
+                return redirect(url_for('main.index'))
+            return f(*args, **kwargs)
+        return wrapped
+    return wrapper
 
 def rate_limit_exceeded(e):
     flash('You have exceeded the request limit. Please try again later.', 'error')

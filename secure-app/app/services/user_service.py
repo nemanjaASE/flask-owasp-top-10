@@ -115,7 +115,7 @@ class UserService:
                 username=user_dto.username,
                 email=user_dto.email,
                 birth_date=user_dto.birth_date,
-                password=hashed_password
+                password=hashed_password,
             )
 
             return self.user_repository.create(user)

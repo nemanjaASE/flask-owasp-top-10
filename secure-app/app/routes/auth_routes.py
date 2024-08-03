@@ -28,7 +28,8 @@ def register():
             username=form.username.data,
             email=form.email.data,
             password=form.password.data,
-            birth_date=form.birth_date.data
+            birth_date=form.birth_date.data,
+            role='Reader'
         )
         
         try:

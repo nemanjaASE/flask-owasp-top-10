@@ -1,6 +1,7 @@
 from flask import render_template, current_app
 from flask_login import login_required
 from app.forms.delete_user_form import DeleteUserForm
+from app import requires_roles 
 
 from app.services.exceptions.database_service_error import DatabaseServiceError
 
@@ -21,7 +22,9 @@ def index():
 
     return render_template('index.html',posts=posts)
 
+
 @main_bp.route('/dashboard')
+@requires_roles('Admin')
 def dashboard():
     form = DeleteUserForm()
     post_service = current_app.post_service

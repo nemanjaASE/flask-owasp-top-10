@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 
 from app.forms.post_form import PostForm
 from app.dto.create_post_dto import CreatePostDTO
+from app import requires_roles 
 
 from app.services.exceptions import *
 
@@ -10,6 +11,7 @@ from . import post_bp
 
 @post_bp.route('/add_post', methods=['GET', 'POST'])
 @login_required
+@requires_roles('Admin', 'Author')
 def add_post():
     form = PostForm()
 

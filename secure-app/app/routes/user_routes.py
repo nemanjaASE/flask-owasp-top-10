@@ -4,6 +4,8 @@ from flask_login import login_required
 from app.forms.profile_form import ProfileForm
 from app.forms.delete_user_form import DeleteUserForm
 
+from app import requires_roles 
+
 from app.dto.update_user_dto import UpdateUserDTO
 from app.services.exceptions import *
 from . import user_bp
@@ -45,14 +47,14 @@ def profile(user_id):
 
 @user_bp.route('/delete/<string:user_id>', methods=['POST'])
 @login_required
+@requires_roles('Admin')
 def delete_user(user_id):
     user_service = current_app.user_service
 
     form = DeleteUserForm()
     if form.validate_on_submit():
         try:
-            user = user_service.get_user(user_id)
-            user_service.delete_user(user)
+            user_service.delete_user(user_id)
         except EntityNotFoundError as e:
             current_app.logger.error('User not found: %s', (str(e),))
         except DatabaseServiceError as e:
