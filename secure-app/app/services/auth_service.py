@@ -83,9 +83,6 @@ class AuthService:
             DuplicateEmailException: If the email is already in use.
             DatabaseServiceError: If there is a database error.
         """
-        if user_dto is None:
-            raise InvalidParameterException("user dto", "Invalid or missing parameter")
-        
         if any(value is None for value in vars(user_dto).values()):
             raise InvalidParameterException("user dto values", "Invalid or missing parameter")
         
@@ -119,9 +116,6 @@ class AuthService:
             EntityNotFoundError: If the user is not found by the email associated with the token.
             DatabaseServiceError: If there is a database error.
         """
-        if not reset_password_dto:
-            raise InvalidParameterException("reset password dto", "Invalid or missing parameter")
-        
         if any(value is None for value in vars(reset_password_dto).values()):
             raise InvalidParameterException("reset password dto values", "Invalid or missing parameter")
         

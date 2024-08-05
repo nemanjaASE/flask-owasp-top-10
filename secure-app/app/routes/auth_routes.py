@@ -1,10 +1,11 @@
-from flask import render_template, redirect, url_for, flash, current_app
+from flask import render_template, redirect, url_for, flash, current_app, session, request
 from flask_login import login_user, logout_user, login_required
 
 from app.forms.register_form import RegistrationForm
 from app.forms.login_form import LoginForm
 from app.forms.request_reset_form import RequestResetForm
 from app.forms.reset_password_form import ResetPasswordForm
+from app.forms.otp_form import OTPForm
 
 from app.dto.user_dto import UserRegistrationDTO
 from app.dto.reset_password_dto import ResetPasswordDTO
@@ -12,6 +13,8 @@ from app.dto.reset_password_dto import ResetPasswordDTO
 from app.services.exceptions import *
 
 from . import auth_bp
+
+from itsdangerous import SignatureExpired, BadSignature
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 @current_app.limiter.limit("5 per hour")
@@ -51,6 +54,7 @@ def register():
 @current_app.limiter.limit("10 per minute")
 def login():
     auth_service = current_app.auth_service
+    email_service = current_app.email_service
 
     form = LoginForm()
 
@@ -61,6 +65,12 @@ def login():
         try:
             user = auth_service.authenticate(email, password)
             if user:
+                if user.role == 'Admin':
+                    otp_token, generated_time = email_service.send_otp(user.email)
+                    session['otp_token'] = otp_token
+                    session['user_id'] = user.id
+                    session['otp_generated_time'] = generated_time
+                    return redirect(url_for('auth.verify_otp'))
                 login_user(user)
                 return redirect(url_for('main.index'))
             else:
@@ -143,3 +153,58 @@ def reset_password(token):
         current_app.logger.error('Unhandled: %s', (str(e),))
 
     return render_template('reset_password.html', form=form)
+
+@auth_bp.route('/verify-otp', methods=['GET', 'POST'])
+def verify_otp():
+    user_service = current_app.user_service
+    otp_token_service = current_app.otp_token_service
+
+    form = OTPForm()
+    if form.validate_on_submit():
+        otp = (
+            form.otp_1.data +
+            form.otp_2.data +
+            form.otp_3.data +
+            form.otp_4.data +
+            form.otp_5.data +
+            form.otp_6.data
+        )
+        token = session.get('otp_token')
+
+        if not token:
+            flash('OTP token is missing or expired.', 'error')
+            return redirect(url_for('main.info'))
+
+        try:
+            saved_otp = otp_token_service.verify_otp_token(token)
+        except SignatureExpired as e:
+            current_app.logger.error('OTP: %s', (str(e),))
+            flash('The OTP has expired.', 'info')
+            return redirect(url_for('main.info'))
+        except BadSignature as e:
+            current_app.logger.error('OTP: %s', (str(e),))
+            flash('The OTP is invalid.', 'info')
+            return redirect(url_for('main.info'))
+        except Exception as e:
+            current_app.logger.error('Error: %s', (str(e),))
+            return redirect(url_for('auth.login'))
+        
+
+        if saved_otp is None:
+            flash('The OTP is either invalid or expired.', 'error')
+            return redirect(url_for('main.info'))
+    
+        if otp == saved_otp:
+            user_id = session.get('user_id')
+            user = user_service.get_user(user_id)
+            if user:
+                login_user(user)
+                session.pop('otp_token', None)
+                session.pop('user_id', None)
+                return redirect(url_for('main.index'))
+            else:
+                flash('Invalid OTP. Try again.', 'error')
+        else:
+            flash('Invalid OTP. Try again.', 'error')
+
+    return render_template('verify_otp.html', form=form)

@@ -1,13 +1,14 @@
 from flask import url_for
 from flask_mail import Message
 from app.services.user_service import UserService
-from app.utils import token_utils
+from app.utils import token_utils, otp_utils
 from app.services.reset_token_service import ResetTokenService
 
 from app.services.exceptions import *
 from app.repositories.exceptions import *
 
 from time import time, sleep
+import random
 
 class EmailService:
     def __init__(self, reset_token_service: ResetTokenService, user_service: UserService, mail, s):
@@ -24,7 +25,7 @@ class EmailService:
 
             start_time = time()
 
-            token = token_utils.generate_token(email, self.s)
+            token = token_utils.generate_email_token(email, self.s)
             self.reset_token_service.add_token(token, user.id)
 
             reset_url = url_for('auth.reset_password', token=token, _external=True)
@@ -46,4 +47,16 @@ class EmailService:
         except DatabaseServiceError as e:
             sleep(2)
             raise e
-       
+        
+    def send_otp(self, email: str):
+       if not email:
+            raise InvalidParameterException("email", "Invalid or missing parameter")
+       try:
+            otp, generated_time = otp_utils.generate_otp()
+            otp_token = token_utils.generate_otp_token(otp, self.s)
+            msg = Message('Your OTP for Two-Factor Authentication', recipients=[email])
+            msg.body = f'Your OTP is: {otp}'
+            self.mail.send(msg)
+            return otp_token, generated_time
+       except InvalidParameterException as e:
+            raise e

@@ -29,7 +29,7 @@ class ResetTokenService:
 
             if token.used:
                 raise ResetTokenException("The token has already been used.")
-            email = token_utils.verify_token(token.token, self.s)
+            email = token_utils.verify_email_token(token.token, self.s)
             return token, email
         except EntityNotFoundError as e:
             raise e

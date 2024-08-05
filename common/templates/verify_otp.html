@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Verify OTP</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/verify_otp.css') }}"
+    />
+  </head>
+  <body>
+    <div
+      class="container"
+      data-otp-generated-time="{{ session['otp_generated_time'] }}"
+      data-login-url="{{ url_for('auth.login') }}"
+    >
+      <h1>Verify OTP</h1>
+      <form method="post" action="{{ url_for('auth.verify_otp') }}">
+        {{ form.hidden_tag() }}
+        <label for="otp">Enter OTP:</label>
+        <div class="otp-inputs">
+          {{ form.otp_1(class="otp-input") }} {{ form.otp_2(class="otp-input")
+          }} {{ form.otp_3(class="otp-input") }} {{
+          form.otp_4(class="otp-input") }} {{ form.otp_5(class="otp-input") }}
+          {{ form.otp_6(class="otp-input") }}
+        </div>
+        <div id="countdown">
+          Time left: <span id="time-left">60</span> seconds
+        </div>
+        {% with messages = get_flashed_messages(with_categories=true) %} {% if
+        messages %}
+        <ul class="flashes">
+          {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %} {% endwith %} {{ form.submit() }}
+      </form>
+      <a href="{{ url_for('auth.register') }}"
+        >Don't have an account yet? Sign Up</a
+      >
+    </div>
+    <script src="{{ url_for('static', filename='js/verify_otp.js') }}"></script>
+  </body>
+</html>
