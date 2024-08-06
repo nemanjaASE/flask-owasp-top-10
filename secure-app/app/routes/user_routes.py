@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, current_app
+from flask import render_template, redirect, url_for, current_app, flash
 from flask_login import login_required
 
 from app.forms.profile_form import ProfileForm
@@ -63,3 +63,24 @@ def delete_user(user_id):
             current_app.logger.error('Unhandled: %s', (str(e),))
             
     return redirect(url_for('main.dashboard'))
+
+@user_bp.route('/request_author_role/<string:user_id>', methods=['GET'])
+@login_required
+@requires_roles('Reader')
+def request_author_role(user_id):
+    author_requests_service = current_app.author_requests_service
+    try:
+        if author_requests_service.check_existence(user_id):
+             author_requests_service.create_author_request(user_id)
+             flash('You successfully send a request for an author role!', 'info')
+        else:
+              flash('Your request is still in progress.', 'info')
+    except InvalidParameterException as e:
+            current_app.logger.error('Parameter: %s', (str(e),))
+    except DatabaseServiceError as e:
+            current_app.logger.error('Database: %s', (str(e),))
+    except Exception as e:
+            current_app.logger.error('Unhandled: %s', (str(e),))
+
+
+    return redirect(url_for('main.index'))

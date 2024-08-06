@@ -26,8 +26,19 @@ def seed_db(db):
     )
     user2.set_password('123456');
 
+    user3 = User(
+        first_name='Ana',
+        last_name='Ivanovic',
+        username='ana123',
+        email='ana@gmail.com',
+        birth_date=datetime.strptime('1999-02-07', '%Y-%m-%d').date(),
+        role='Reader'
+    )
+    user3.set_password('123456')
+
     db.session.add(user1)
     db.session.add(user2)
+    db.session.add(user3)
     db.session.commit()
 
     category1 = Category(name='Bussiness')

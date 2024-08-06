@@ -9,34 +9,85 @@ content %}
 </head>
 <div class="dashboard">
   <h1>Dashboard</h1>
-  <div class="stats">
-    <div class="stat">
-      <h2>Total Posts</h2>
-      <p>{{ total_posts }}</p>
-    </div>
-    <div class="stat">
-      <h2>Total Users</h2>
-      <p>{{ total_users }}</p>
+  <div class="tabs">
+    <div class="tab active" data-tab="users-tab">Users</div>
+    <div class="tab" data-tab="requests-tab">Requests</div>
+  </div>
+
+  <div id="users-tab" class="tab-content active">
+    <div class="user-list">
+      <h2>All Users</h2>
+      <ul>
+        {% for user in users %} {% if user.id != current_user.id %}
+        <li>
+          {{ user.username }} | {{ user.email }}
+          <form
+            method="post"
+            action="{{ url_for('user.delete_user', user_id=user.id) }}"
+            style="display: inline"
+          >
+            {{ form.hidden_tag() }}
+
+            <button type="submit" class="delete-button">Delete</button>
+          </form>
+        </li>
+        {% endif %} {% endfor %}
+      </ul>
     </div>
   </div>
-  <div class="user-list">
-    <h2>All Users</h2>
-    <ul>
-      {% for user in users %} {% if user.id != current_user.id %}
-      <li>
-        {{ user.username }} | {{ user.email }}
-        <form
-          method="post"
-          action="{{ url_for('user.delete_user', user_id=user.id) }}"
-          style="display: inline"
-        >
-          {{ form.hidden_tag() }}
-          <input type="hidden" name="user_id" value="{{ user.id }}" />
-          <button type="submit" class="delete-button">Delete</button>
-        </form>
-      </li>
-      {% endif %} {% endfor %}
-    </ul>
+
+  <div id="requests-tab" class="tab-content">
+    <div class="requests-list">
+      <h2>All Requests</h2>
+      <ul>
+        {% for request in requests %}
+        <li class="request-item">
+          <div class="request-info">
+            {{ request.user_id }} | {{ request.status }}
+          </div>
+          {% if request.status == 'InProgress' %}
+          <div class="request-actions">
+            <form method="post" action="{{ url_for('auth.confirm_request') }}">
+              {{ form.hidden_tag() }}
+              <input type="hidden" name="request_id" value="{{ request.id }}" />
+              <input type="hidden" name="status" value="Accepted" />
+              <button type="submit" class="confirm-button">Confirm</button>
+            </form>
+            <form method="post" action="{{ url_for('auth.confirm_request') }}">
+              {{ form.hidden_tag() }}
+              <input type="hidden" name="request_id" value="{{ request.id }}" />
+              <input type="hidden" name="status" value="Refused" />
+              <button type="submit" class="deny-button">Deny</button>
+            </form>
+          </div>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
   </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var tabs = document.querySelectorAll('.tab');
+      var tabContents = document.querySelectorAll('.tab-content');
+      console.log('Remove');
+      tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          tabs.forEach(function (t) {
+            t.classList.remove('active');
+          });
+
+          tab.classList.add('active');
+
+          tabContents.forEach(function (tc) {
+            tc.classList.remove('active');
+          });
+
+          var contentId = tab.getAttribute('data-tab');
+          document.getElementById(contentId).classList.add('active');
+        });
+      });
+    });
+  </script>
 </div>
 {% endblock %}

@@ -29,6 +29,7 @@ def dashboard():
     form = DeleteUserForm()
     post_service = current_app.post_service
     user_service = current_app.user_service
+    author_requests_service = current_app.author_requests_service
 
     total_posts = 0
     total_users = 0
@@ -37,6 +38,8 @@ def dashboard():
          total_posts = post_service.post_count()
          total_users = user_service.user_count()
          users = user_service.get_all_users()
+         requests = author_requests_service.get_all_author_requests()
+        
     except DatabaseServiceError as e:
         current_app.logger.error('Database: %s', (str(e),))
     except Exception as e:
@@ -48,6 +51,7 @@ def dashboard():
         total_posts=total_posts,
         total_users=total_users,
         users=users,
+        requests=requests,
         form=form)
 
 @main_bp.route('/info')

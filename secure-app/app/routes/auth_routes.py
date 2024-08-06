@@ -208,3 +208,16 @@ def verify_otp():
             flash('Invalid OTP. Try again.', 'error')
 
     return render_template('verify_otp.html', form=form)
+
+@auth_bp.route('/confirm_request', methods=['GET', 'POST'])
+def confirm_request():
+    author_requests_service = current_app.author_requests_service
+
+    if request.method == 'POST':
+        request_id = request.form.get('request_id')
+        status = request.form.get('status')
+
+        author_requests_service.update_request(request_id, status)
+
+    return redirect(url_for('main.dashboard'))
+        

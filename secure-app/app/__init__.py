@@ -70,6 +70,7 @@ def create_app():
     app.pwned_service = PwnedService()
     app.post_service = PostService(PostRepository())
     app.category_service = CategoryService(CategoryRepository())
+    app.author_requests_service = AuthorRequestsService(AuthorRequestsRepository(), UserRepository())
 
 
     app.register_error_handler(429, rate_limit_exceeded)

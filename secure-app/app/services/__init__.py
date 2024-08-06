@@ -6,6 +6,7 @@ from .pwned_service import PwnedService
 from .reset_token_service import ResetTokenService
 from .user_service import UserService
 from .otp_token_service import OTPTokenService
+from .author_requests_service import AuthorRequestsService
 
 __all__ = ["AuthService",
            "CategoryService",
@@ -14,4 +15,5 @@ __all__ = ["AuthService",
            "PwnedService",
            "ResetTokenService",
            "UserService",
-           "OTPTokenService"]
+           "OTPTokenService",
+           "AuthorRequestsService"]

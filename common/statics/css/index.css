@@ -246,6 +246,10 @@ li span {
   float: right;
 }
 
+#request-author-button {
+  float: right;
+}
+
 .hashtags {
   display: flex;
   flex-wrap: wrap;
@@ -258,4 +262,16 @@ li span {
   background-color: #f0f0f0;
   border-radius: 4px;
   font-size: 14px;
+}
+
+.flash-message {
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+}
+
+.flash-message.info {
+  background-color: #d9edf7;
+  color: #31708f;
+  border: 1px solid #bce8f1;
 }
