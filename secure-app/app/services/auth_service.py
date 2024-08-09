@@ -1,5 +1,5 @@
 from app.services.user_service import UserService
-from app.services.reset_token_service import ResetTokenService
+from app.services.token_service import TokenService
 from app.services.email_service import EmailService
 
 from app.utils import password_utils
@@ -12,9 +12,9 @@ from app.services.exceptions import *
 from typing import Optional
 
 class AuthService:
-    def __init__(self, user_service: UserService, reset_token_service: ResetTokenService, email_service: EmailService, redis_client):
+    def __init__(self, user_service: UserService, token_service: TokenService, email_service: EmailService, redis_client):
         self.user_service = user_service
-        self.reset_token_service = reset_token_service
+        self.token_service = token_service
         self.email_service = email_service
         self.redis_client = redis_client
 
@@ -31,6 +31,7 @@ class AuthService:
 
         Raises:
             InvalidParameterException: If the email or password is invalid or missing.
+            AccountNotVerifiedError: If the user account is not verified
             EntityNotFoundError: If the user is not found by the given email.
             InvalidPasswordException: If the password does not match.
             AccountLockedException: If the account is locked due to multiple failed attempts.
@@ -44,6 +45,8 @@ class AuthService:
 
         try:
             user = self.user_service.get_user_by_email(email)
+            if not user.is_verified:
+                raise AccountNotVerifiedError()
 
             user_id = user.id
             lockout_key = f"lockout:{user_id}"
@@ -123,10 +126,10 @@ class AuthService:
         password = reset_password_dto.password
 
         try:
-            token, email = self.reset_token_service.verify_token(token_str)
+            token, email = self.token_service.verify_reset_token(token_str)
             user = self.user_service.get_user_by_email(email)
             updated_user = self.user_service.update_password(user.id, password)
-            self.reset_token_service.set_used(token)
+            self.token_service.set_reset_used(token)
             return updated_user
         except (InvalidParameterException, ResetTokenException, EntityNotFoundError, DatabaseServiceError) as e:
             raise e

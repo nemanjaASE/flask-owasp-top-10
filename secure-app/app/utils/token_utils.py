@@ -14,6 +14,17 @@ def verify_email_token(token, s, expiration=3600):
     except Exception as e:
         raise Exception(f"An error occurred: {str(e)}")
     
+def verify_account_token(token, s):
+    try:
+        email = s.loads(token, salt='email-confirm-salt')
+        return email
+    except SignatureExpired:
+        raise SignatureExpired("The email token has expired.")
+    except BadSignature:
+        raise BadSignature("The email token is invalid.")
+    except Exception as e:
+        raise Exception(f"An error occurred: {str(e)}")
+    
 def generate_otp_token(email, s):
     return s.dumps(email, salt='otp-confirm-salt')
 

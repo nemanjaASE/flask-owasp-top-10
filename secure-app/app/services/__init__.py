@@ -3,7 +3,7 @@ from .category_service import CategoryService
 from .email_service import EmailService
 from .post_service import PostService
 from .pwned_service import PwnedService
-from .reset_token_service import ResetTokenService
+from .token_service import TokenService
 from .user_service import UserService
 from .otp_token_service import OTPTokenService
 from .author_requests_service import AuthorRequestsService
@@ -13,7 +13,7 @@ __all__ = ["AuthService",
            "EmailService",
            "PostService",
            "PwnedService",
-           "ResetTokenService",
+           "TokenService",
            "UserService",
            "OTPTokenService",
            "AuthorRequestsService"]

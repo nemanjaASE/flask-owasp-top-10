@@ -21,6 +21,7 @@ from itsdangerous import SignatureExpired, BadSignature
 def register():
     auth_service = current_app.auth_service
     pwned_service = current_app.pwned_service
+    email_service = current_app.email_service
 
     form = RegistrationForm(pwned_service)
 
@@ -37,6 +38,7 @@ def register():
         
         try:
             auth_service.register(user_dto)
+            email_service.send_confrimation_email(user_dto.email)
         except DuplicateEmailException as e:
             current_app.logger.error('User: %s', (str(e),))
         except InvalidPasswordException as e:
@@ -45,8 +47,8 @@ def register():
             current_app.logger.error('Database: %s', (str(e),))
         except Exception as e:
             current_app.logger.error('Unhandled: %s', (str(e),))
-        
-        return redirect(url_for('auth.login'))
+        flash('Go to your email to verify your account.', 'info')
+        return redirect(url_for('main.info'))
     return render_template('register.html', form=form)
 
 
@@ -75,6 +77,10 @@ def login():
                 return redirect(url_for('main.index'))
             else:
                 flash('Wrong email or password', 'error')
+        except AccountNotVerifiedError as e:
+            current_app.logger.error('User account not verified: %s', (str(e),))
+            flash(str(e), 'info')
+            return redirect(url_for('main.info'))
         except EntityNotFoundError as e:
             current_app.logger.error('User not found: %s', (str(e),))
             flash('Wrong email or password', 'error')
@@ -124,12 +130,12 @@ def reset_request():
 def reset_password(token):
     auth_service = current_app.auth_service
     pwned_service = current_app.pwned_service
-    reset_token_service = current_app.reset_token_service
+    token_service = current_app.token_service
 
     form = ResetPasswordForm(pwned_service)
 
     try:
-        reset_token_service.verify_token(token)
+        token_service.verify_reset_token(token)
 
         if form.validate_on_submit():
             reset_password_dto = ResetPasswordDTO(password=form.password.data,token=token)
@@ -140,7 +146,7 @@ def reset_password(token):
                 return redirect(url_for('auth.login'))
             else:
                 return redirect(url_for('auth.reset_request'))
-    except ResetTokenException as e:
+    except TokenException as e:
         current_app.logger.error('Reset token: %s', (str(e),))
         return redirect(url_for('auth.reset_request'))
     except EntityNotFoundError as e:
@@ -153,6 +159,29 @@ def reset_password(token):
         current_app.logger.error('Unhandled: %s', (str(e),))
 
     return render_template('reset_password.html', form=form)
+
+@auth_bp.route('/confirm_email/<token>', methods=['GET', 'POST'])
+def confirm_email(token):
+    token_service = current_app.token_service
+
+    try:
+        token_service.verify_confirm_token(token)
+    except TokenException as e:
+        current_app.logger.error('Confirm token: %s', (str(e),))
+        return redirect(url_for('auth.login'))
+    except EntityNotFoundError as e:
+        current_app.logger.error('Confirm Token not found: %s', (str(e),))
+        return redirect(url_for('auth.login'))
+    except DatabaseServiceError as e:
+        current_app.logger.error('Database: %s', (str(e),))
+        return redirect(url_for('auth.login'))
+    except Exception as e:
+        current_app.logger.error('Unhandled: %s', (str(e),))
+
+    flash('Your account has been successfully verified. You can now log in.', 'info')
+
+    return redirect(url_for('main.info'))
+        
 
 @auth_bp.route('/verify-otp', methods=['GET', 'POST'])
 def verify_otp():
@@ -220,4 +249,3 @@ def confirm_request():
         author_requests_service.update_request(request_id, status)
 
     return redirect(url_for('main.dashboard'))
-        

@@ -12,7 +12,8 @@ def seed_db(db):
         username='nemanja123',
         email='nemanja@gmail.com',
         birth_date=datetime.strptime('2000-01-19', '%Y-%m-%d').date(),
-        role='Admin'
+        role='Admin',
+        is_verified=True
     )
     user1.set_password('123456');
     
@@ -22,7 +23,8 @@ def seed_db(db):
         username='mirko123',
         email='mirko@gmail.com',
         birth_date=datetime.strptime('1989-11-10', '%Y-%m-%d').date(),
-        role='Author'
+        role='Author',
+        is_verified=True
     )
     user2.set_password('123456');
 
@@ -32,7 +34,8 @@ def seed_db(db):
         username='ana123',
         email='ana@gmail.com',
         birth_date=datetime.strptime('1999-02-07', '%Y-%m-%d').date(),
-        role='Reader'
+        role='Reader',
+        is_verified=True
     )
     user3.set_password('123456')
 

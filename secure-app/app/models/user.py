@@ -13,6 +13,7 @@ class User(db.Model, UserMixin):
     birth_date = db.Column(db.Date)
     posts = db.relationship('Post', backref='author', lazy='dynamic', cascade="all, delete-orphan")
     role = db.Column(db.String(20), default='Reader') 
+    is_verified = db.Column(db.Boolean, default=False)
 
     def set_password(self, password):
         self.password = hash_password(password)

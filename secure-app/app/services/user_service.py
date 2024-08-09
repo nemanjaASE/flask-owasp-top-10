@@ -59,8 +59,6 @@ class UserService:
 
         try:
             user = self.user_repository.get_by_email(email)
-            if not user:
-                raise NotFoundError(f"User with email {email} not found.")
             return user
         except NotFoundError as e:
             raise EntityNotFoundError("User", "email", email) from e
@@ -151,6 +149,35 @@ class UserService:
         try:
             hashed_password = hash_password(new_password)
             return self.user_repository.update(user_id, password=hashed_password)
+        except NotFoundError as e:
+            raise EntityNotFoundError("User", "ID", user_id) from e
+        except DatabaseError as e:
+            raise DatabaseServiceError(e) from e
+
+    def verify_user(self, user_id: str) -> User:
+        """
+        Verifying user.
+
+        Args:
+            user_id (str): The user ID
+
+        Returns:
+            User: The updated user object.
+
+        Raises:
+            InvalidParameterException: If the user ID is invalid or missing.
+            EntityNotFoundError: If the user is not found by the given ID.
+            DatabaseServiceError: If there is a database error.
+        """
+        if not user_id or not isinstance(user_id, str):
+            raise InvalidParameterException("user id", "Invalid or missing parameter")
+       
+        try:
+           
+            return self.user_repository.update(
+                user_id,
+                is_verified=True)
+        
         except NotFoundError as e:
             raise EntityNotFoundError("User", "ID", user_id) from e
         except DatabaseError as e:
