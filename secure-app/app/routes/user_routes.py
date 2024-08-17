@@ -1,5 +1,5 @@
 from flask import render_template, redirect, url_for, current_app, flash
-from flask_login import login_required
+from flask_login import login_required, current_user
 
 from app.forms.profile_form import ProfileForm
 from app.forms.delete_user_form import DeleteUserForm
@@ -14,6 +14,9 @@ from . import user_bp
 @login_required
 def profile(user_id):
     user_service = current_app.user_service
+
+    if user_id != current_user.id:
+         return redirect(url_for('main.index'))
 
     try:
         user = user_service.get_user(user_id)
@@ -68,6 +71,10 @@ def delete_user(user_id):
 @login_required
 @requires_roles('Reader')
 def request_author_role(user_id):
+    
+    if user_id != current_user.id:
+         return redirect(url_for('main.index'))
+
     author_requests_service = current_app.author_requests_service
     try:
         if author_requests_service.check_existence(user_id):

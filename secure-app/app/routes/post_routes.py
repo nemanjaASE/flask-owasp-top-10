@@ -30,8 +30,6 @@ def add_post():
                 if category:
                     categories.append(category)
 
-            print(categories)
-
             post_dto = CreatePostDTO(
                 title=form.title.data,
                 body=form.content.data,
