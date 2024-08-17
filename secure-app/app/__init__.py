@@ -36,7 +36,7 @@ def requires_roles(*roles):
     return wrapper
 
 def rate_limit_exceeded(e):
-    flash('You have exceeded the request limit. Please try again later.', 'error')
+    flash('You have exceeded the request limit. Please try again later.', 'info')
     return redirect(url_for('main.info'))
 
 def create_app():

@@ -24,30 +24,30 @@ class CategoryService:
         except DatabaseError as e:
             raise DatabaseServiceError(e) from e
 
-    def get_category_by_name(self, name: str) -> Optional[Category]:
+    def get_category_by_id(self, id: str) -> Optional[Category]:
         """
-        Retrieves a category by their name.
+        Retrieves a category by their id.
 
         Args:
-            name (str): The name of the category to retrieve.
+            id (str): The id of the category to retrieve.
 
         Returns:
             Optional[Category]: The category object if found, otherwise None.
 
         Raises:
             InvalidParameterException: If the name is invalid or missing.
-            EntityNotFoundError: If the category is not found by the given name.
+            EntityNotFoundError: If the category is not found by the given id.
             DatabaseServiceError: If there is a database error.
         """
-        if not name or not isinstance(name, str):
-            raise InvalidParameterException("name", "Invalid or missing parameter")
+        if not id or not isinstance(id, str):
+            raise InvalidParameterException("id", "Invalid or missing parameter")
 
         try:
-            category = self.user_repository.get_by_name(name)
+            category = self.category_repository.get_by_id(id)
             if not category:
-                raise NotFoundError(f"Category with anme {name} not found.")
+                raise NotFoundError(f"Category with anme {id} not found.")
             return category
         except NotFoundError as e:
-            raise EntityNotFoundError("Category", "name", name) from e
+            raise EntityNotFoundError("Category", "id", id) from e
         except DatabaseError as e:
             raise DatabaseServiceError(e) from e

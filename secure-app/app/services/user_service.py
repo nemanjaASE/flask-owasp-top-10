@@ -96,8 +96,6 @@ class UserService:
             DuplicateUsernameException: If the username is already in use.
             DatabaseServiceError: If there is a database error.
         """
-        if not isinstance(user_dto, UserRegistrationDTO):
-            raise InvalidParameterException("user dto", "Invalid or missing parameter")
         
         try:
             if not self.is_email_unique(user_dto.email):

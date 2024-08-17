@@ -24,6 +24,7 @@ def index():
 
 
 @main_bp.route('/dashboard')
+@login_required
 @requires_roles('Admin')
 def dashboard():
     form = DeleteUserForm()

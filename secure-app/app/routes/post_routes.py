@@ -23,12 +23,15 @@ def add_post():
     
         if form.validate_on_submit():
             selected_categories = form.category.data
+       
             categories = []
-            for category_name in selected_categories:
-                category = category_service.get_category_by_name(category_name)
+            for category_id in selected_categories:
+                category = category_service.get_category_by_id(category_id)
                 if category:
                     categories.append(category)
-        
+
+            print(categories)
+
             post_dto = CreatePostDTO(
                 title=form.title.data,
                 body=form.content.data,
@@ -36,7 +39,7 @@ def add_post():
                 categories=categories
             )
 
-            post_service.add_post(post_dto)
+            post_service.create_post(post_dto)
             return redirect(url_for('main.index'))
     except EntityNotFoundError as e:
             current_app.logger.error('Post not found: %s', (str(e),))

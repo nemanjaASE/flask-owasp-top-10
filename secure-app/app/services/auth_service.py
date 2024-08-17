@@ -65,9 +65,7 @@ class AuthService:
                     raise AccountLockedException()
                 raise InvalidPasswordException('Password does not match')
 
-        except (InvalidParameterException, EntityNotFoundError, DatabaseServiceError) as e:
-            raise e
-        except Exception as e:
+        except (InvalidParameterException, EntityNotFoundError, DatabaseServiceError, Exception) as e:
             raise e
 
     def register(self, user_dto: UserRegistrationDTO) -> User:
@@ -98,9 +96,7 @@ class AuthService:
             new_user = self.user_service.create_user(user_dto)
 
             return new_user
-        except (InvalidParameterException, DuplicateEmailException, DatabaseServiceError) as e:
-            raise e
-        except Exception as e:
+        except (InvalidParameterException, DuplicateEmailException, DatabaseServiceError, Exception) as e:
             raise e
 
     def reset_password(self, reset_password_dto: ResetPasswordDTO) -> User:
@@ -131,7 +127,5 @@ class AuthService:
             updated_user = self.user_service.update_password(user.id, password)
             self.token_service.set_reset_used(token)
             return updated_user
-        except (InvalidParameterException, ResetTokenException, EntityNotFoundError, DatabaseServiceError) as e:
-            raise e
-        except Exception as e:
+        except (InvalidParameterException, EntityNotFoundError, DatabaseServiceError, Exception) as e:
             raise e

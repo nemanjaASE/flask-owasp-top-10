@@ -78,9 +78,5 @@ class EmailService:
             '''
             self.mail.send(msg)
 
-        except InvalidParameterException as e:
-            raise e
-        except EntityNotFoundError as e:
-            raise e
-        except DatabaseServiceError as e:
+        except (EntityNotFoundError, DatabaseServiceError)  as e:
             raise e
