@@ -20,4 +20,4 @@ def load_user(user_id):
         current_app.logger.error('Unhandled: %s', (str(e),))
 
 if __name__ == '__main__':
-    app.run(port=5001)
+    app.run(ssl_context=('cert.pem', 'key.pem'), port=9001)
