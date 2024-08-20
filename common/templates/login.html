@@ -13,7 +13,6 @@
       <h1>Sign In</h1>
       <form method="post">
         {{ form.hidden_tag() }}
-
         <div class="form-group">
           {{ form.email.label }}<br />
           {{ form.email(size=32) }}<br />
@@ -64,6 +63,11 @@
           {% endfor %}
         </ul>
         {% endif %} {% endwith %}
+        <div>
+          {{ form.recaptcha }} {% if form.recaptcha.errors %}
+          <span style="color: red">{{ form.recaptcha.errors[0] }}</span>
+          {% endif %}
+        </div>
         <div class="form-group">{{ form.submit() }}</div>
       </form>
 
