@@ -8,7 +8,6 @@ from app.services.exceptions import *
 from app.repositories.exceptions import *
 
 from time import time, sleep
-import random
 
 class EmailService:
     def __init__(self, token_service: TokenService, user_service: UserService, mail, s):

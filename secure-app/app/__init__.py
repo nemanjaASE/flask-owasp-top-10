@@ -71,7 +71,7 @@ def create_app():
     app.post_service = PostService(PostRepository())
     app.category_service = CategoryService(CategoryRepository())
     app.author_requests_service = AuthorRequestsService(AuthorRequestsRepository(), UserRepository())
-
+    app.recaptcha_service = RecaptchaService()
 
     app.register_error_handler(429, rate_limit_exceeded)
 

@@ -7,6 +7,7 @@ from .token_service import TokenService
 from .user_service import UserService
 from .otp_token_service import OTPTokenService
 from .author_requests_service import AuthorRequestsService
+from .recaptcha_v3_service import RecaptchaService
 
 __all__ = ["AuthService",
            "CategoryService",
@@ -16,4 +17,5 @@ __all__ = ["AuthService",
            "TokenService",
            "UserService",
            "OTPTokenService",
-           "AuthorRequestsService"]
+           "AuthorRequestsService",
+           "RecaptchaService"]

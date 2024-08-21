@@ -22,10 +22,18 @@ def register():
     auth_service = current_app.auth_service
     pwned_service = current_app.pwned_service
     email_service = current_app.email_service
+    recaptcha_service = current_app.recaptcha_service
 
     form = RegistrationForm(pwned_service)
 
     if form.validate_on_submit():
+
+        recaptcha_token = request.form.get('g-recaptcha-response')
+        recaptcha_secret = current_app.config['RECAPTCHA_V3_PRIVATE_KEY']
+
+        if not recaptcha_service.verify_token(recaptcha_token, recaptcha_secret):
+            render_template('register.html', form=form)
+
         user_dto = UserRegistrationDTO(
             first_name=form.first_name.data,
             last_name=form.last_name.data,

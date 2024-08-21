@@ -8,6 +8,7 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='css/register.css') }}"
     />
+    <script src="https://www.google.com/recaptcha/api.js?render=6LdxnioqAAAAAFb8J7sg27ck3ZZv_JT3k0GnqIiN"></script>
   </head>
   <body>
     <div class="container">
@@ -133,13 +134,30 @@
           </ul>
           {% endif %}
         </div>
+        <input
+          type="hidden"
+          name="g-recaptcha-response"
+          id="g-recaptcha-response"
+        />
         <div>{{ form.submit() }}</div>
       </form>
+
       <a href="{{ url_for('auth.login') }}"
         >Already have an account? Sign In here</a
       >
     </div>
     <script src="{{ url_for('static', filename='js/zxcvbn-ts.js') }}"></script>
     <script src="{{ url_for('static', filename='js/register.js') }}"></script>
+    <script>
+      grecaptcha.ready(function () {
+        grecaptcha
+          .execute('6LdxnioqAAAAAFb8J7sg27ck3ZZv_JT3k0GnqIiN', {
+            action: 'submit',
+          })
+          .then(function (token) {
+            document.getElementById('g-recaptcha-response').value = token;
+          });
+      });
+    </script>
   </body>
 </html>
