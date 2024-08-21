@@ -12,5 +12,3 @@ class RecaptchaService():
 
         result = response.json()
         return False if not result.get('success') else True
-           
-
