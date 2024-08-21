@@ -1,4 +1,4 @@
-from flask import Flask, flash, redirect, url_for
+from flask import Flask, flash, redirect, url_for, g
 from datetime import timedelta
 from flask_wtf import CSRFProtect
 from flask_login import LoginManager, current_user
@@ -6,6 +6,8 @@ from flask_mail import Mail
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from itsdangerous import URLSafeTimedSerializer
+from flask_talisman import Talisman
+from app.csp import csp
 import os
 
 from app.services import *
@@ -24,6 +26,7 @@ logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
 
 from functools import wraps
+
 
 def requires_roles(*roles):
     def wrapper(f):
@@ -61,6 +64,8 @@ def create_app():
         default_limits=["200 per day", "50 per hour"],
         storage_uri=app.config['REDIS_URL']
     )
+
+    talisman = Talisman(app, content_security_policy=csp)
 
     app.user_service = UserService(UserRepository())
     app.token_service = TokenService(ResetTokenRepository(), ConfirmTokenRepository(), app.user_service, s)

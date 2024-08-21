@@ -1,6 +1,6 @@
 from app import create_app, login_manager
 from app.services.exceptions import *
-from flask import current_app
+from flask import current_app, g
 
 app = create_app()
 

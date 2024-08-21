@@ -23,8 +23,6 @@ class RegistrationForm(FlaskForm):
 
     def validate_password(self, password_field):
         password = password_field.data
-        if len(password) < 8 or len(password) > 64:
-            raise ValidationError('Password must be between 8 and 64 characters long.')
 
         if self.pwned_service.is_password_compromised(password):
             raise ValidationError('Password is compromised and cannot be used.')
