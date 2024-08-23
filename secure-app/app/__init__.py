@@ -49,7 +49,7 @@ def create_app():
     app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
     app.config.from_object('config.Config')
 
-    app.permanent_session_lifetime = timedelta(hours=1)
+    app.permanent_session_lifetime = timedelta(minutes=30)
     db.init_app(app)
     login_manager.init_app(app)
     csrf = CSRFProtect(app)
@@ -77,7 +77,6 @@ def create_app():
     app.category_service = CategoryService(CategoryRepository())
     app.author_requests_service = AuthorRequestsService(AuthorRequestsRepository(), UserRepository())
     app.recaptcha_service = RecaptchaService()
-
     app.register_error_handler(429, rate_limit_exceeded)
 
     with app.app_context():

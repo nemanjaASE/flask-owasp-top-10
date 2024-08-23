@@ -1,6 +1,6 @@
 from app import create_app, login_manager
 from app.services.exceptions import *
-from flask import current_app, g
+from flask import current_app, render_template
 
 app = create_app()
 
