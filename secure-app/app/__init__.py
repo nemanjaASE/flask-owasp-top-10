@@ -55,7 +55,6 @@ def create_app():
     csrf = CSRFProtect(app)
     mail = Mail(app)
     s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-
     # Initialize Limiter with Redis
     app.redis_client = redis.Redis(host='localhost', port=6379, db=0)
     app.limiter = Limiter(
@@ -65,7 +64,22 @@ def create_app():
         storage_uri=app.config['REDIS_URL']
     )
 
-    talisman = Talisman(app, content_security_policy=csp)
+    permissions_policy = {
+    "geolocation": "'self'",
+    "camera": "'none'",
+    "microphone": "'none'",
+    "fullscreen": "'self'",
+    }   
+
+    talisman = Talisman(app, 
+                        content_security_policy=csp, 
+                        force_https=True, 
+                        strict_transport_security=True,
+                        x_content_type_options=True,
+                        frame_options="DENY",
+                        referrer_policy="strict-origin-when-cross-origin",
+                        permissions_policy=permissions_policy,
+                        session_cookie_secure=True,)
 
     app.user_service = UserService(UserRepository())
     app.token_service = TokenService(ResetTokenRepository(), ConfirmTokenRepository(), app.user_service, s)

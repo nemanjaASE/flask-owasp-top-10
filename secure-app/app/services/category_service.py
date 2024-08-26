@@ -35,17 +35,17 @@ class CategoryService:
             Optional[Category]: The category object if found, otherwise None.
 
         Raises:
-            InvalidParameterException: If the name is invalid or missing.
+            InvalidInputException: If the name is invalid or missing.
             EntityNotFoundError: If the category is not found by the given id.
             DatabaseServiceError: If there is a database error.
         """
-        if not id or not isinstance(id, str):
-            raise InvalidParameterException("id", "Invalid or missing parameter")
-
+        if not id:
+            raise InvalidInputException("id", "Invalid or missing parameter")
+        
         try:
             category = self.category_repository.get_by_id(id)
             if not category:
-                raise NotFoundError(f"Category with anme {id} not found.")
+                raise NotFoundError(f"Category with name {id} not found.", id)
             return category
         except NotFoundError as e:
             raise EntityNotFoundError("Category", "id", id) from e

@@ -1,3 +1,11 @@
+document
+  .getElementById('toggle-password-confirm')
+  .addEventListener('click', togglePasswordConfirmVisibility);
+
+document
+  .getElementById('toggle-password')
+  .addEventListener('click', togglePasswordVisibility);
+
 function togglePasswordVisibility() {
   var passwordInput = document.getElementById('password');
   var eyePasswordShow = document.getElementById('eye-password-show');
@@ -93,21 +101,3 @@ const passwordInput = document.getElementById('password');
 if (passwordInput) {
   passwordInput.addEventListener('input', onPasswordChange);
 }
-
-grecaptcha.ready(function () {
-  grecaptcha
-    .execute('6LdxnioqAAAAAFb8J7sg27ck3ZZv_JT3k0GnqIiN', {
-      action: 'submit',
-    })
-    .then(function (token) {
-      document.getElementById('g-recaptcha-response').value = token;
-    });
-});
-
-document
-  .getElementById('toggle-password-confirm')
-  .addEventListener('click', togglePasswordConfirmVisibility);
-
-document
-  .getElementById('toggle-password')
-  .addEventListener('click', togglePasswordVisibility);

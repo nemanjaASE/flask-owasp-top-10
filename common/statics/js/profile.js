@@ -1,15 +1,20 @@
-document.getElementById('edit-button').onclick = function () {
-  var inputs = document.querySelectorAll('#profile-form input');
-  inputs.forEach((input) => (input.readOnly = false));
-  document.getElementById('edit-button').style.display = 'none';
-  document.getElementById('save-button').style.display = 'inline-block';
-  document.getElementById('cancel-button').style.display = 'inline-block';
-};
+document.addEventListener('DOMContentLoaded', function () {
+  const editButton = document.getElementById('edit-button');
+  const saveButton = document.getElementById('save-button');
+  const cancelButton = document.getElementById('cancel-button');
+  const inputs = document.querySelectorAll('#profile-form input');
 
-document.getElementById('cancel-button').onclick = function () {
-  var inputs = document.querySelectorAll('#profile-form input');
-  inputs.forEach((input) => (input.readOnly = true));
-  document.getElementById('edit-button').style.display = 'inline-block';
-  document.getElementById('save-button').style.display = 'none';
-  document.getElementById('cancel-button').style.display = 'none';
-};
+  editButton.addEventListener('click', function () {
+    inputs.forEach((input) => (input.readOnly = false));
+    editButton.style.display = 'none';
+    saveButton.style.display = 'inline-block';
+    cancelButton.style.display = 'inline-block';
+  });
+
+  cancelButton.addEventListener('click', function () {
+    inputs.forEach((input) => (input.readOnly = true));
+    editButton.style.display = 'inline-block';
+    saveButton.style.display = 'none';
+    cancelButton.style.display = 'none';
+  });
+});

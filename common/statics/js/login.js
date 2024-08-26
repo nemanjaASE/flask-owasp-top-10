@@ -16,3 +16,7 @@ function togglePasswordVisibility() {
   }
   isPasswordVisible = !isPasswordVisible;
 }
+
+document
+  .getElementById('toggle-password')
+  .addEventListener('click', togglePasswordVisibility);

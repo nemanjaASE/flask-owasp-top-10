@@ -14,3 +14,10 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+  var flashMessages = document.querySelectorAll('.flash-message');
+  flashMessages.forEach(function (msg) {
+    alert(msg.textContent);
+  });
+});

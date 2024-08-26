@@ -10,6 +10,11 @@ body {
   margin: 20px;
 }
 
+#eye-password-confirm-hide,
+#eye-password-hide {
+  display: none;
+}
+
 .container {
   width: 80%;
   max-width: 450px;
@@ -77,7 +82,11 @@ a:hover {
 }
 .error-message {
   color: #dc3545;
-  font-size: 12px;
+  font-size: 14px;
+  max-width: 300px;
+  list-style-type: none;
+  margin-top: 5px;
+  margin-left: -35px;
 }
 
 li {

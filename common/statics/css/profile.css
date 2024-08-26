@@ -11,3 +11,8 @@ h1 {
   font-size: 36px;
   text-align: center;
 }
+
+#save-button,
+#cancel-button {
+  display: none;
+}

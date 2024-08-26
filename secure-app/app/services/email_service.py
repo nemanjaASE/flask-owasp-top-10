@@ -6,8 +6,7 @@ from app.services.token_service import TokenService
 
 from app.services.exceptions import *
 from app.repositories.exceptions import *
-
-from time import time, sleep
+from app.services.validators.base_user_validator import BaseUserValidator
 
 class EmailService:
     def __init__(self, token_service: TokenService, user_service: UserService, mail, s):
@@ -17,12 +16,13 @@ class EmailService:
         self.s = s
 
     def send_reset_email(self, email: str):
-        if not email:
-            raise InvalidParameterException("email", "Invalid or missing parameter")
+        msg = BaseUserValidator.validate_email(email)
+
+        if msg:
+            raise InvalidInputException("email", "Invalid or missing parameter")
+        
         try:
             user = self.user_service.get_user_by_email(email)
-
-            start_time = time()
 
             token = token_utils.generate_email_token(email, self.s)
             self.token_service.add_reset_token(token, user.id)
@@ -35,21 +35,17 @@ class EmailService:
             If you did not make this request then simply ignore this email and no changes will be made.
             '''
             self.mail.send(msg)
-
-            elapsed_time = time() - start_time
-            remaining_time = max(0, 2 - elapsed_time)
-            sleep(remaining_time)
-        except InvalidParameterException as e:
-            raise e
-        except EntityNotFoundError as e:
+        except (InvalidInputException, EntityNotFoundError) as e:
             raise e
         except DatabaseServiceError as e:
-            sleep(2)
             raise e
         
     def send_otp(self, email: str):
-       if not email:
-            raise InvalidParameterException("email", "Invalid or missing parameter")
+       msg = BaseUserValidator.validate_email(email)
+
+       if msg:
+            raise InvalidInputException("email", "Invalid or missing parameter")
+       
        try:
             otp, generated_time = otp_utils.generate_otp()
             otp_token = token_utils.generate_otp_token(otp, self.s)
@@ -57,12 +53,15 @@ class EmailService:
             msg.body = f'Your OTP is: {otp}'
             self.mail.send(msg)
             return otp_token, generated_time
-       except InvalidParameterException as e:
+       except InvalidInputException as e:
             raise e
        
     def send_confrimation_email(self, email: str):
-        if not email:
-            raise InvalidParameterException("email", "Invalid or missing parameter")
+        msg = BaseUserValidator.validate_email(email)
+
+        if msg:
+            raise InvalidInputException("email", "Invalid or missing parameter")
+
         try:
             user = self.user_service.get_user_by_email(email)
 

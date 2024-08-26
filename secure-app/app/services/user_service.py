@@ -9,6 +9,10 @@ from app.repositories.user_repository import UserRepository
 from app.services.exceptions import *
 from app.repositories.exceptions import *
 
+from app.services.validators.base_user_validator import BaseUserValidator
+from app.services.validators.register_user_validator import RegisterUserValidator
+from app.services.validators.update_user_validator import UpdateUserValidator
+
 class UserService:
     def __init__(self, user_repository: UserRepository) -> None:
         self.user_repository = user_repository
@@ -24,13 +28,10 @@ class UserService:
             Optional[User]: The user object if found, otherwise None.
 
         Raises:
-            InvalidParameterException: If the user_id is invalid or missing.
+            InvalidInputException: If the user_id is invalid or missing.
             EntityNotFoundError: If the user is not found.
             DatabaseServiceError: If there is a database error.
         """
-        if not user_id or not isinstance(user_id, str):
-            raise InvalidParameterException("user ID", "Invalid or missing parameter")
-
         try:
             user = self.user_repository.get_by_id(user_id)
             return user
@@ -50,12 +51,14 @@ class UserService:
             Optional[User]: The user object if found, otherwise None.
 
         Raises:
-            InvalidParameterException: If the email is invalid or missing.
+            InvalidInputException: If the email is invalid or missing.
             EntityNotFoundError: If the user is not found by the given email.
             DatabaseServiceError: If there is a database error.
         """
-        if not email or not isinstance(email, str):
-            raise InvalidParameterException("email", "Invalid or missing parameter")
+        msg = BaseUserValidator.validate_email(email)
+
+        if msg:
+            raise InvalidInputException("email", "Invalid or missing parameter")
 
         try:
             user = self.user_repository.get_by_email(email)
@@ -91,18 +94,18 @@ class UserService:
             User: The created user object.
 
         Raises:
-            InvalidParameterException: If the user_dto is invalid or missing.
+            InvalidInputException: If the user_dto is invalid or missing.
             DuplicateEmailException: If the email is already in use.
             DuplicateUsernameException: If the username is already in use.
             DatabaseServiceError: If there is a database error.
         """
         
+        msg = RegisterUserValidator.validate(user_dto.__dict__)
+        
+        if msg:
+            raise InvalidInputException("create user", "Invalid or missing input")
+
         try:
-            if not self.is_email_unique(user_dto.email):
-                raise DuplicateEmailException(f"Email {user_dto.email} is already in use")
-            
-            if not self.is_username_unique(user_dto.username):
-                raise DuplicateUsernameException(f"Username {user_dto.username} is already in use")
             
             hashed_password = hash_password(user_dto.password)
             user = User(
@@ -131,18 +134,14 @@ class UserService:
             User: The updated user object.
 
         Raises:
-            InvalidParameterException: If the user_id or new_password is invalid or missing.
+            InvalidInputException: If the user_id or new_password is invalid or missing.
             EntityNotFoundError: If the user is not found by the given ID.
             DatabaseServiceError: If there is a database error.
         """
-        if not user_id or not isinstance(user_id, str):
-            raise InvalidParameterException("user id", "Invalid or missing parameter")
+        msg = BaseUserValidator.validate_password(new_password)
         
-        if not new_password or not isinstance(new_password, str):
-            raise InvalidParameterException("password", "Invalid or missing parameter")
-        
-        if len(new_password) < 8 or len(new_password) > 64:
-            raise InvalidParameterException("password", "Password must be between 8 and 64 characters long")
+        if msg:
+            raise InvalidInputException("new password", "Invalid or missing input")
         
         try:
             hashed_password = hash_password(new_password)
@@ -163,13 +162,10 @@ class UserService:
             User: The updated user object.
 
         Raises:
-            InvalidParameterException: If the user ID is invalid or missing.
+            InvalidInputException: If the user ID is invalid or missing.
             EntityNotFoundError: If the user is not found by the given ID.
             DatabaseServiceError: If there is a database error.
         """
-        if not user_id or not isinstance(user_id, str):
-            raise InvalidParameterException("user id", "Invalid or missing parameter")
-       
         try:
            
             return self.user_repository.update(
@@ -192,13 +188,14 @@ class UserService:
             User: The updated user object.
 
         Raises:
-            InvalidParameterException: If the user dto is invalid or missing.
+            InvalidInputException: If the user dto is invalid or missing.
             EntityNotFoundError: If the user is not found by the given ID.
             DatabaseServiceError: If there is a database error.
         """
-        if not isinstance(update_user_dto, UpdateUserDTO):
-            raise InvalidParameterException("update user dto", "Invalid or missing parameter")
-        
+        msg = UpdateUserValidator.validate(update_user_dto.__dict__)
+        if msg:
+            raise InvalidInputException("update user", "Invalid or missing input")
+
         user_id = update_user_dto.user_id
        
         try:
@@ -227,13 +224,10 @@ class UserService:
             User: The deleted user object.
 
         Raises:
-            InvalidParameterException: If the user_id is invalid or missing.
+            InvalidInputException: If the user_id is invalid or missing.
             EntityNotFoundError: If the user is not found by the given ID.
             DatabaseServiceError: If there is a database error.
         """
-        if not user_id or not isinstance(user_id, str):
-            raise InvalidParameterException("user ID", "Invalid or missing parameter")
-
         try:
             return self.user_repository.delete(user_id)
         except NotFoundError as e:
@@ -267,11 +261,13 @@ class UserService:
             bool: True if the username is unique, False otherwise.
 
         Raises:
-            InvalidParameterException: If the username is invalid or missing.
+            InvalidInputException: If the username is invalid or missing.
             DatabaseServiceError: If there is a database error.
         """
-        if not username or not isinstance(username, str):
-            raise InvalidParameterException("username", "Invalid or missing parameter")
+        msg = BaseUserValidator.validate_username(username)
+
+        if msg:
+            raise InvalidInputException("username", "Invalid or missing input")
 
         try:
             return self.user_repository.is_username_unique(username)
@@ -289,11 +285,13 @@ class UserService:
             bool: True if the email is unique, False otherwise.
 
         Raises:
-            InvalidParameterException: If the email is invalid or missing.
+            InvalidInputException: If the email is invalid or missing.
             DatabaseServiceError: If there is a database error.
         """
-        if not email or not isinstance(email, str):
-            raise InvalidParameterException("email", "Invalid or missing parameter")
+        msg = BaseUserValidator.validate_email(email)
+
+        if msg:
+            raise InvalidInputException("email", "Invalid or missing parameter")
 
         try:
             return self.user_repository.is_email_unique(email)

@@ -8,6 +8,9 @@ from app.dto.user_dto import UserRegistrationDTO
 from app.dto.reset_password_dto import ResetPasswordDTO
 
 from app.services.exceptions import *
+from app.services.validators.login_user_validator import LoginUserValidator
+from app.services.validators.register_user_validator import RegisterUserValidator
+from app.services.validators. register_user_validator import BaseUserValidator
 
 from typing import Optional
 
@@ -30,18 +33,20 @@ class AuthService:
             Optional[User]: The authenticated user if the credentials are valid, otherwise None.
 
         Raises:
-            InvalidParameterException: If the email or password is invalid or missing.
+            InvalidInputException: If the email or password is invalid or missing.
             AccountNotVerifiedError: If the user account is not verified
             EntityNotFoundError: If the user is not found by the given email.
             InvalidPasswordException: If the password does not match.
             AccountLockedException: If the account is locked due to multiple failed attempts.
             DatabaseServiceError: If there is a database error.
         """
-        if not email or not isinstance(email, str):
-            raise InvalidParameterException("email", "Invalid or missing parameter")
-        
-        if not password or not isinstance(password, str):
-            raise InvalidParameterException("password", "Invalid or missing parameter")
+        msg = LoginUserValidator.validate({
+            "email": email,
+            "password": password
+        })
+
+        if msg:
+            raise InvalidInputException("email or password", "Invalid or missing input")
 
         try:
             user = self.user_service.get_user_by_email(email)
@@ -65,7 +70,7 @@ class AuthService:
                     raise AccountLockedException()
                 raise InvalidPasswordException('Password does not match')
 
-        except (InvalidParameterException, EntityNotFoundError, DatabaseServiceError, Exception) as e:
+        except (InvalidInputException, EntityNotFoundError, DatabaseServiceError, Exception) as e:
             raise e
 
     def register(self, user_dto: UserRegistrationDTO) -> User:
@@ -79,24 +84,22 @@ class AuthService:
             User: The registered user.
 
         Raises:
-            InvalidParameterException: If the user_dto or any of its values are invalid or missing.
+            InvalidInputException: If the user_dto or any of its values are invalid or missing.
             InvalidPasswordException: If the password does not meet the required length.
             DuplicateEmailException: If the email is already in use.
             DatabaseServiceError: If there is a database error.
         """
-        if any(value is None for value in vars(user_dto).values()):
-            raise InvalidParameterException("user dto values", "Invalid or missing parameter")
+
+        msg = RegisterUserValidator.validate(user_dto.__dict__)
         
-        password = user_dto.password
+        if msg:
+            raise InvalidInputException("user register", "Invalid or missing input")
 
         try:
-            if len(password) < 8 or len(password) > 64:
-                raise InvalidPasswordException("Password must be between 8 and 64 characters long")
-            
             new_user = self.user_service.create_user(user_dto)
 
             return new_user
-        except (InvalidParameterException, DuplicateEmailException, DatabaseServiceError, Exception) as e:
+        except (InvalidInputException, DuplicateEmailException, DatabaseServiceError, Exception) as e:
             raise e
 
     def reset_password(self, reset_password_dto: ResetPasswordDTO) -> User:
@@ -110,13 +113,15 @@ class AuthService:
             User: The user with the updated password.
 
         Raises:
-            InvalidParameterException: If the reset_password_dto or any of its values are invalid or missing.
+            InvalidInputException: If the reset_password_dto or any of its values are invalid or missing.
             ResetTokenException: If there is an error with the reset token.
             EntityNotFoundError: If the user is not found by the email associated with the token.
             DatabaseServiceError: If there is a database error.
         """
-        if any(value is None for value in vars(reset_password_dto).values()):
-            raise InvalidParameterException("reset password dto values", "Invalid or missing parameter")
+        msg = BaseUserValidator.validate_password(reset_password_dto.password)
+
+        if msg:
+            raise InvalidInputException("password",'Invalid or missing input.')
         
         token_str = reset_password_dto.token
         password = reset_password_dto.password
@@ -127,5 +132,5 @@ class AuthService:
             updated_user = self.user_service.update_password(user.id, password)
             self.token_service.set_reset_used(token)
             return updated_user
-        except (InvalidParameterException, EntityNotFoundError, DatabaseServiceError, Exception) as e:
+        except (InvalidInputException, EntityNotFoundError, DatabaseServiceError, Exception) as e:
             raise e

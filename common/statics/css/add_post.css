@@ -24,3 +24,8 @@ select {
   box-sizing: border-box;
   font-size: 16px;
 }
+
+#save-button,
+#cancel-button {
+  display: none;
+}

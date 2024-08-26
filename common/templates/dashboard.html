@@ -6,6 +6,10 @@ content %}
     type="text/css"
     href="{{ url_for('static', filename='css/dashboard.css') }}"
   />
+  <script
+    src="{{ url_for('static', filename='js/dashboard.js') }}"
+    defer
+  ></script>
 </head>
 <div class="dashboard">
   <h1>Dashboard</h1>
@@ -24,7 +28,6 @@ content %}
           <form
             method="post"
             action="{{ url_for('user.delete_user', user_id=user.id) }}"
-            style="display: inline"
           >
             {{ form.hidden_tag() }}
 
@@ -66,28 +69,5 @@ content %}
       </ul>
     </div>
   </div>
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      var tabs = document.querySelectorAll('.tab');
-      var tabContents = document.querySelectorAll('.tab-content');
-      console.log('Remove');
-      tabs.forEach(function (tab) {
-        tab.addEventListener('click', function () {
-          tabs.forEach(function (t) {
-            t.classList.remove('active');
-          });
-
-          tab.classList.add('active');
-
-          tabContents.forEach(function (tc) {
-            tc.classList.remove('active');
-          });
-
-          var contentId = tab.getAttribute('data-tab');
-          document.getElementById(contentId).classList.add('active');
-        });
-      });
-    });
-  </script>
 </div>
 {% endblock %}

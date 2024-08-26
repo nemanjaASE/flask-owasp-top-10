@@ -17,7 +17,8 @@ def redirect_successfully(route_name, msg=None, flash_category=None):
 
 def handle_exception(exception, flash_category, route, status_code=None, msg=None, form=None):
     current_app.logger.error('Error: %s', str(exception))
-    flash(msg, flash_category)
+    if msg:
+        flash(msg, flash_category)
 
     if route:
         response = make_response(render_template(route, form=form))
@@ -47,7 +48,7 @@ def handle_authentication(email, password, form):
             return redirect_successfully('main.index')
     except AccountNotVerifiedError as e:
         return redirect_successfully('main.info', str(e), 'info')
-    except (EntityNotFoundError, InvalidPasswordException) as e:
+    except (EntityNotFoundError, InvalidInputException, InvalidPasswordException) as e:
         return handle_exception(e, 'error', 'login.html', 400, 'Wrong email or password', form)
     except AccountLockedException as e:
         return handle_exception(e, 'error', 'login.html', 401, str(e), form)
@@ -73,8 +74,7 @@ def handle_register(recaptcha_token, recaptcha_secret, form):
             username=form.username.data,
             email=form.email.data,
             password=form.password.data,
-            birth_date=form.birth_date.data,
-            role='Reader'
+            birth_date=form.birth_date.data
         )
     
     try:
@@ -130,8 +130,6 @@ def handle_reset_password(token, form):
     except Exception as e:
         return handle_exception(e, 'error', 'reset_request.html', status_code=500)
 
-    return render_template('reset_password.html', form=form)
-
 def handle_confirm_email(token):
     token_service = current_app.token_service
 
@@ -179,7 +177,7 @@ def handle_confirm_request(request_id, status):
     try:
         author_requests_service.update_request(request_id, status)
         return redirect_successfully(url_for('main.dashboard'))
-    except (InvalidParameterException, EntityNotFoundError) as e:
+    except (InvalidInputException, EntityNotFoundError) as e:
          return handle_exception(e, 'error', 'dashboard.html', 400)
     except DatabaseServiceError as e:
          return handle_exception(e, 'error', 'dashboard.html', status_code=500)

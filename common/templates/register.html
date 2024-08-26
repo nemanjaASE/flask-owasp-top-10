@@ -62,12 +62,8 @@
         <div>
           {{ form.password.label }}<br />
           <div class="password-container">
-            {{ form.password(size=32, id="password" )}}
-            <span
-              class="toggle-button"
-              id="toggle-password"
-              onclick="togglePasswordVisibility()"
-            >
+            {{ form.password(size=64, id="password" )}}
+            <span class="toggle-button" id="toggle-password">
               <img
                 id="eye-password-show"
                 src="{{ url_for('static', filename='img/eye-password-show.svg') }}"
@@ -77,7 +73,6 @@
                 id="eye-password-hide"
                 src="{{ url_for('static', filename='img/eye-password-hide.svg') }}"
                 alt="Hide password"
-                style="display: none"
               />
             </span>
           </div>
@@ -97,11 +92,7 @@
           {{ form.confirm_password.label }}<br />
           <div class="password-container">
             {{ form.confirm_password(size=32, id="password-confirm" )}}<br />
-            <span
-              class="toggle-button"
-              id="toggle-password-confirm"
-              onclick="togglePasswordConfirmVisibility()"
-            >
+            <span class="toggle-button" id="toggle-password-confirm">
               <img
                 id="eye-password-confirm-show"
                 src="{{ url_for('static', filename='img/eye-password-show.svg') }}"
@@ -111,7 +102,6 @@
                 id="eye-password-confirm-hide"
                 src="{{ url_for('static', filename='img/eye-password-hide.svg') }}"
                 alt="Hide password"
-                style="display: none"
               />
             </span>
           </div>
@@ -148,16 +138,5 @@
     </div>
     <script src="{{ url_for('static', filename='js/zxcvbn-ts.js') }}"></script>
     <script src="{{ url_for('static', filename='js/register.js') }}"></script>
-    <script>
-      grecaptcha.ready(function () {
-        grecaptcha
-          .execute('6LdxnioqAAAAAFb8J7sg27ck3ZZv_JT3k0GnqIiN', {
-            action: 'submit',
-          })
-          .then(function (token) {
-            document.getElementById('g-recaptcha-response').value = token;
-          });
-      });
-    </script>
   </body>
 </html>

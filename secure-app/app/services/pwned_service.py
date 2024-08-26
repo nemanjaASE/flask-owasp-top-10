@@ -1,8 +1,16 @@
 import hashlib
 import requests
 
+from app.services.validators.base_user_validator import BaseUserValidator
+from app.services.exceptions.invalid_input_exception import InvalidInputException
+
 class PwnedService:
     def is_password_compromised(self, password):
+        msg = BaseUserValidator.validate_password(password)
+
+        if msg:
+            raise InvalidInputException("password", "Invalid or missing parameter")
+
         hashed_password = hashlib.sha1(password.encode('utf-8')).hexdigest().upper()
         prefix, suffix = hashed_password[:5], hashed_password[5:]
 

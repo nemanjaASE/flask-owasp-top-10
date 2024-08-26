@@ -7,6 +7,8 @@ from app.dto.create_post_dto import CreatePostDTO
 from app.services.exceptions import *
 from app.repositories.exceptions import *
 
+from app.services.validators.create_post_validator import CreatePostValidator
+
 class PostService:
     def __init__(self, post_repository: PostRepository) -> None:
         self.post_repository = post_repository
@@ -42,9 +44,6 @@ class PostService:
             EntityNotFoundError: If the post is not found.
             DatabaseServiceError: If there is a database error.
         """
-        if not post_id or not isinstance(post_id, str):
-            raise InvalidParameterException("post ID", "Invalid or missing parameter")
-
         try:
             post = self.post_repository.get_by_id(post_id)
             return post
@@ -65,12 +64,14 @@ class PostService:
             Post: The created post object.
 
         Raises:
-            InvalidParameterException: If the post_dto is invalid or missing.
+            InvalidInputException: If the post_dto is invalid or missing.
             DatabaseServiceError: If there is a database error.
-        """
-        if not isinstance(post_dto, CreatePostDTO):
-            raise InvalidParameterException("post dto", "Invalid or missing parameter")
-        
+        """      
+        msg = CreatePostValidator.validate(post_dto.__dict__)
+
+        if msg:
+            raise InvalidInputException('create post', 'Invalid or missing input')
+
         try:
             new_post = Post(
                 title=post_dto.title, 

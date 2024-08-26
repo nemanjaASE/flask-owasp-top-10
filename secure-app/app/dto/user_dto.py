@@ -9,4 +9,3 @@ class UserRegistrationDTO:
     email: str
     password: str
     birth_date: date
-    role: str

@@ -75,6 +75,10 @@ li:last-child {
   border-bottom: none;
 }
 
+#hidden-flash {
+  display: none;
+}
+
 button {
   font-size: 16px;
   padding: 10px 20px;

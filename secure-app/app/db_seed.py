@@ -15,7 +15,7 @@ def seed_db(db):
         role='Admin',
         is_verified=True
     )
-    user1.set_password('123456');
+    user1.set_password('12345678');
     
     user2 = User(
         first_name='Mirko',
@@ -26,7 +26,7 @@ def seed_db(db):
         role='Author',
         is_verified=True
     )
-    user2.set_password('123456');
+    user2.set_password('12345678');
 
     user3 = User(
         first_name='Ana',
@@ -37,7 +37,7 @@ def seed_db(db):
         role='Reader',
         is_verified=True
     )
-    user3.set_password('123456')
+    user3.set_password('12345678')
 
     db.session.add(user1)
     db.session.add(user2)

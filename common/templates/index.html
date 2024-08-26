@@ -1,6 +1,12 @@
 {% extends "base.html" %} {% block title %}Home Page{% endblock %} {% block
 content %} {% if current_user.role == 'Author' or current_user.role == 'Admin'
 %}
+<head>
+  <script
+    src="{{ url_for('static', filename='js/dashboard.js') }}"
+    defer
+  ></script>
+</head>
 <button id="add-post-button" data-href="{{ url_for('post.add_post') }}">
   Add New Post
 </button>
@@ -34,19 +40,9 @@ content %} {% if current_user.role == 'Author' or current_user.role == 'Admin'
 
 {% with messages = get_flashed_messages(with_categories=true) %} {% if messages
 %} {% for category, message in messages %}
-<li class="flash-message {{ category }}">{{ message }}</li>
+<li id="hidden-flash" class="flash-message {{ category }}">{{ message }}</li>
 {% endfor %} {% endif %} {% endwith %}
 
 <script src="{{ url_for('static', filename='js/index.js') }}"></script>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    // Izvući poruke iz HTML-a
-    var flashMessages = document.querySelectorAll('.flash-message');
-    flashMessages.forEach(function (msg) {
-      alert(msg.textContent); // Prikazivanje poruka kao alert
-    });
-  });
-</script>
 
 {% endblock %}

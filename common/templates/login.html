@@ -28,12 +28,8 @@
         <div class="form-group">
           {{ form.password.label }}<br />
           <div class="password-container">
-            {{ form.password(size=32, id="password") }}
-            <span
-              class="toggle-button"
-              id="toggle-password"
-              onclick="togglePasswordVisibility()"
-            >
+            {{ form.password(size=64, id="password") }}
+            <span class="toggle-button" id="toggle-password">
               <img
                 id="eye-password-show"
                 src="{{ url_for('static', filename='img/eye-password-show.svg') }}"
@@ -43,7 +39,6 @@
                 id="eye-password-hide"
                 src="{{ url_for('static', filename='img/eye-password-hide.svg') }}"
                 alt="Hide password"
-                style="display: none"
               />
             </span>
           </div>
@@ -65,7 +60,7 @@
         {% endif %} {% endwith %}
         <div>
           {{ form.recaptcha }} {% if form.recaptcha.errors %}
-          <span style="color: red">{{ form.recaptcha.errors[0] }}</span>
+          <span id="recaptcha-errors">{{ form.recaptcha.errors[0] }}</span>
           {% endif %}
         </div>
         <div class="form-group">{{ form.submit() }}</div>

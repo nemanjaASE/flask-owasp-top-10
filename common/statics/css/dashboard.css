@@ -142,3 +142,7 @@
 .request-actions form {
   display: inline;
 }
+
+form {
+  display: inline;
+}

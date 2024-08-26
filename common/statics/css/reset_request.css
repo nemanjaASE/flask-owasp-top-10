@@ -79,7 +79,8 @@ a:hover {
 
 .error-message {
   color: #dc3545;
-  font-size: 16px;
+  font-size: 14px;
+  max-width: 300px;
   margin-top: 5px;
   margin-left: -35px;
   list-style-type: none;

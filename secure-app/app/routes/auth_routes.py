@@ -7,16 +7,11 @@ from app.forms.request_reset_form import RequestResetForm
 from app.forms.reset_password_form import ResetPasswordForm
 from app.forms.otp_form import OTPForm
 
-from app.dto.user_dto import UserRegistrationDTO
-from app.dto.reset_password_dto import ResetPasswordDTO
-
 from app.services.exceptions import *
 
 from . import auth_bp
 
 from .helpers import auth_helpers
-
-from itsdangerous import SignatureExpired, BadSignature
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 @current_app.limiter.limit("5 per hour")
@@ -64,10 +59,12 @@ def reset_request():
 @auth_bp.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
     pwned_service = current_app.pwned_service
-
     form = ResetPasswordForm(pwned_service)
-
-    return auth_helpers.handle_reset_password(token, form)
+    
+    if form.validate_on_submit():
+        return auth_helpers.handle_reset_password(token, form)
+    
+    return render_template('reset_password.html', form=form)
 
 @auth_bp.route('/confirm_email/<token>', methods=['GET', 'POST'])
 def confirm_email(token):

@@ -9,6 +9,16 @@ body {
   height: 90vh;
 }
 
+#eye-password-hide {
+  display: none;
+}
+
+#recaptcha-errors {
+  color: #dc3545;
+  font-size: 14px;
+  max-width: 300px;
+}
+
 .container {
   width: 80%;
   max-width: 400px;
@@ -45,6 +55,7 @@ input[type='submit'] {
   font-size: 16px;
   border: 1px solid #ccc;
   border-radius: 6px;
+  width: 280px;
 }
 
 input[type='submit'] {
@@ -79,7 +90,8 @@ a:hover {
 
 .error-message {
   color: #dc3545;
-  font-size: 16px;
+  font-size: 14px;
+  max-width: 300px;
   margin-top: 5px;
   margin-left: -35px;
   list-style-type: none;
@@ -111,7 +123,8 @@ a:hover {
 
 .password-container {
   position: relative;
-  display: inline-block;
+  isplay: flex;
+  align-items: center;
 }
 .toggle-button {
   position: absolute;

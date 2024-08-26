@@ -4,7 +4,7 @@ from app.models.author_requests import AuthorRequests
 from app.services.exceptions import *
 from app.repositories.exceptions import *
 
-from typing import Optional, List
+from typing import List
 
 class AuthorRequestsService:
     def __init__(self, author_requests_repository: AuthorRequestsRepository, user_repository: UserRepository) -> None:
@@ -26,7 +26,7 @@ class AuthorRequestsService:
             DatabaseServiceError: If there is a database error.
         """
         if not user_id:
-            raise InvalidParameterException("user id", "Invalid or missing parameter")
+            raise InvalidInputException("user id", "Invalid or missing parameter")
         
         try:
             author_request = AuthorRequests(
@@ -52,8 +52,8 @@ class AuthorRequestsService:
             InvalidParameterException: If the user id is invalid or missing.
             DatabaseServiceError: If there is a database error.
         """
-        if not user_id or not isinstance(user_id, str):
-            raise InvalidParameterException("user id", "Invalid or missing parameter")
+        if not user_id:
+            raise InvalidInputException("user id", "Invalid or missing parameter")
 
         try:
             return self.author_requests_repository.check_request(user_id)
@@ -92,9 +92,9 @@ class AuthorRequestsService:
             DatabaseServiceError: If there is a database error.
         """
         if not request_id:
-            raise InvalidParameterException("update request id", "Invalid or missing parameter")
+            raise InvalidInputException("update request id", "Invalid or missing parameter")
         if not status:
-            raise InvalidParameterException("update status", "Invalid or missing parameter")
+            raise InvalidInputException("update status", "Invalid or missing parameter")
 
         try:
             return self.author_requests_repository.update_request(request_id, status)

@@ -81,8 +81,8 @@ def request_author_role(user_id):
              author_requests_service.create_author_request(user_id)
              flash('You successfully send a request for an author role!', 'info')
         else:
-              flash('Your request is still in progress.', 'info')
-    except InvalidParameterException as e:
+             flash('Your request is still in progress.', 'info')
+    except InvalidInputException as e:
             current_app.logger.error('Parameter: %s', (str(e),))
     except DatabaseServiceError as e:
             current_app.logger.error('Database: %s', (str(e),))

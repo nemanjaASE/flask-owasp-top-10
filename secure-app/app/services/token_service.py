@@ -4,6 +4,7 @@ from app.repositories.reset_token_repository import ResetTokenRepository
 from app.repositories.confirm_token_repository import ConfirmTokenRepository
 from app.services.user_service import UserService
 from app.utils import token_utils
+
 from app.services.exceptions import *
 from app.repositories.exceptions import *
 
@@ -15,8 +16,8 @@ class TokenService:
         self.s = s
 
     def get_reset_token(self, reset_token: str) -> ResetToken:
-        if not reset_token or not isinstance(reset_token, str):
-            raise ValueError("Invalid reset token")
+        if not reset_token:
+            raise InvalidInputException("reset token", "Invalid or missing parameter")
         
         try:
             token = self.reset_token_repository.get_by_name(reset_token)
@@ -28,6 +29,9 @@ class TokenService:
 
     
     def verify_reset_token(self, reset_token: str) -> str:
+        if not reset_token:
+            raise InvalidInputException("reset token", "Invalid or missing parameter")
+        
         try:
             token = self.get_reset_token(reset_token)
 
@@ -41,6 +45,11 @@ class TokenService:
             raise e
 
     def add_reset_token(self, reset_token: str, user_id: str) -> ResetToken:
+       if not reset_token:
+            raise InvalidInputException("reset token", "Invalid or missing parameter")
+       if not user_id:
+            raise InvalidInputException("user id", "Invalid or missing parameter")
+       
        if not reset_token or not isinstance(reset_token, str):
             raise ValueError("Invalid reset token")
        if not user_id or not isinstance(user_id, str):
@@ -54,6 +63,9 @@ class TokenService:
             raise DatabaseServiceError(e) from e
 
     def set_reset_used(self, token: ResetToken) -> ResetToken:
+        if not token:
+            raise InvalidInputException("reset token", "Invalid or missing parameter")
+         
         try:
             return self.reset_token_repository.update(token.id, used=True)
         except NotFoundError as e:
@@ -62,10 +74,11 @@ class TokenService:
             raise DatabaseServiceError(e) from e
         
     def add_confirm_token(self, confirm_token: str, user_id: str) -> ConfirmToken:
-       if not confirm_token or not isinstance(confirm_token, str):
-            raise ValueError("Invalid confirm token")
-       if not user_id or not isinstance(user_id, str):
-            raise ValueError("Invalid user ID")
+       if not confirm_token:
+            raise InvalidInputException("confirm token", "Invalid or missing parameter")
+       
+       if not user_id:
+            raise InvalidInputException("user id", "Invalid or missing parameter")
        
        new_token = ConfirmToken(token=confirm_token, user_id=user_id)
 
@@ -75,6 +88,9 @@ class TokenService:
             raise DatabaseServiceError(e) from e
        
     def verify_confirm_token(self, confirm_token: str) -> str:
+        if not confirm_token:
+            raise InvalidInputException("confirm token", "Invalid or missing parameter")
+        
         try:
             token = self.get_confirm_token(confirm_token)
             
@@ -90,8 +106,8 @@ class TokenService:
             raise e
         
     def get_confirm_token(self, confirm_token: str) -> ConfirmToken:
-        if not confirm_token or not isinstance(confirm_token, str):
-            raise ValueError("Invalid confirm token")
+        if not confirm_token:
+            raise InvalidInputException("confirm token", "Invalid or missing parameter")
         
         try:
             token = self.confirm_token_repository.get_by_name(confirm_token)

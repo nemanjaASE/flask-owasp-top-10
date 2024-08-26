@@ -10,7 +10,7 @@ def load_user(user_id):
 
     try:
         return user_service.get_user(user_id)
-    except InvalidParameterException as e:
+    except InvalidInputException as e:
         current_app.logger.error('User Loader: %s', (str(e),))
     except EntityNotFoundError as e:
         current_app.logger.error('User Loader: %s', (str(e),))
