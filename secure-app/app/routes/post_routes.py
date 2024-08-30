@@ -15,52 +15,36 @@ from . import post_bp
 def add_post():
     form = PostForm()
 
-    category_service = current_app.category_service
-    post_service = current_app.post_service
 
-    try:
-        form.category.choices = [(category.id, category.name) for category in category_service.get_all_categories()]
+    form.category.choices = [(category.id, category.name) for category in current_app.category_service.get_all_categories()]
     
-        if form.validate_on_submit():
-            selected_categories = form.category.data
+    if form.validate_on_submit():
+        selected_categories = form.category.data
        
-            categories = []
-            for category_id in selected_categories:
-                category = category_service.get_category_by_id(category_id)
-                if category:
-                    categories.append(category)
+        categories = []
+        for category_id in selected_categories:
+            category = current_app.category_service.get_category_by_id(category_id)
+            if category:
+                categories.append(category)
 
-            post_dto = CreatePostDTO(
-                title=form.title.data,
-                body=form.content.data,
-                user_id=current_user.id,
-                categories=categories
-            )
+                post_dto = CreatePostDTO(
+                    title=form.title.data,
+                    body=form.content.data,
+                    user_id=current_user.id,
+                    categories=categories
+                )
 
-            post_service.create_post(post_dto)
-            return redirect(url_for('main.index'))
-    except EntityNotFoundError as e:
-            current_app.logger.error('Post not found: %s', (str(e),))
-    except DatabaseServiceError as e:
-            current_app.logger.error('Database: %s', (str(e),))
-    except Exception as e:
-            current_app.logger.error('Unhandled: %s', (str(e),))
+        current_app.post_service.create_post(post_dto)
+        return redirect(url_for('main.index'))
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                current_app.security_logger.log_invalid_input(field, error)
 
     return render_template('add_post.html', form=form)
 
 @post_bp.route('/post_details/<string:post_id>')
 @login_required
 def post_details(post_id):
-    post_service = current_app.post_service
-
-    try:
-        post = post_service.get_post(post_id);
-    except EntityNotFoundError as e:
-        current_app.logger.error('Post not found: %s', (str(e),))
-    except DatabaseServiceError as e:
-        current_app.logger.error('Database: %s', (str(e),))
-    except Exception as e:
-        current_app.logger.error('Unhandled: %s', (str(e),))
-
-
+    post = current_app.post_service.get_post(post_id);
     return render_template('post_details.html',post=post);

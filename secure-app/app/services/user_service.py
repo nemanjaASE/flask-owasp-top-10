@@ -95,9 +95,9 @@ class UserService:
 
         Raises:
             InvalidInputException: If the user_dto is invalid or missing.
-            DuplicateEmailException: If the email is already in use.
-            DuplicateUsernameException: If the username is already in use.
             DatabaseServiceError: If there is a database error.
+            EmailAlreadyExistsException: If the user with provided email already exists
+            UsernameAlreadyExistsException: If the user with provided username already exists
         """
         
         msg = RegisterUserValidator.validate(user_dto.__dict__)
@@ -106,7 +106,12 @@ class UserService:
             raise InvalidInputException("create user", "Invalid or missing input")
 
         try:
+            if not self.user_repository.is_email_unique(user_dto.email):
+                raise EmailAlreadyExistsException(user_dto.email)
             
+            if not self.user_repository.is_username_unique(user_dto.username):
+                raise UsernameAlreadyExistsException(user_dto.username)
+
             hashed_password = hash_password(user_dto.password)
             user = User(
                 first_name=user_dto.first_name,

@@ -30,41 +30,25 @@ def handle_exception(exception, flash_category, route, status_code=None, msg=Non
 
 def handle_admin_login(email_service, user):
     otp_token, generated_time = email_service.send_otp(user.email)
+    current_app.security_logger.log_otp_sent(user.email, 'email')
     session['otp_token'] = otp_token
     session['user_id'] = user.id
     session['otp_generated_time'] = generated_time
     return redirect_successfully('auth.verify_otp')
 
-def handle_authentication(email, password, form):
-    auth_service = current_app.auth_service
-    email_service = current_app.email_service
-
-    try:
-        user = auth_service.authenticate(email, password)
-        if user.role == 'Admin':
-            return handle_admin_login(email_service, user)
-        else:
-            login_user(user)
-            return redirect_successfully('main.index')
-    except AccountNotVerifiedError as e:
-        return redirect_successfully('main.info', str(e), 'info')
-    except (EntityNotFoundError, InvalidInputException, InvalidPasswordException) as e:
-        return handle_exception(e, 'error', 'login.html', 400, 'Wrong email or password', form)
-    except AccountLockedException as e:
-        return handle_exception(e, 'error', 'login.html', 401, str(e), form)
-    except DatabaseServiceError as e:
-        return handle_exception(e, 'error', None, 500)
-    except Exception as e:
-        return handle_exception(e, 'error', None, 500)
+def handle_authentication(email, password):
+    user = current_app.auth_service.authenticate(email, password)
+    if user.role == 'Admin':
+        return handle_admin_login(current_app.email_service, user)
+    else:
+        login_user(user)
+        current_app.security_logger.log_successful_login(user)
+    return redirect_successfully('main.index')
 
 def handle_recaptcha_verify(recaptcha_secret, recaptcha_token):
-    recaptcha_service = current_app.recaptcha_service
-    return recaptcha_service.verify_token(recaptcha_token, recaptcha_secret)
+    return current_app.recaptcha_service.verify_token(recaptcha_token, recaptcha_secret)
     
 def handle_register(recaptcha_token, recaptcha_secret, form):
-    auth_service = current_app.auth_service
-    email_service = current_app.email_service
-    
     if not handle_recaptcha_verify(recaptcha_secret, recaptcha_token):
         return render_template('register.html', form=form)
     
@@ -77,78 +61,32 @@ def handle_register(recaptcha_token, recaptcha_secret, form):
             birth_date=form.birth_date.data
         )
     
-    try:
-        auth_service.register(user_dto)
-        email_service.send_confrimation_email(user_dto.email)
-    except DuplicateEmailException as e:
-        return handle_exception(e, 'error', 'register.html', status_code=409, form=form)
-    except InvalidPasswordException as e:
-        return handle_exception(e, 'error', 'register.html', 400, 'Password does not meet the requirements.', form)
-    except DatabaseServiceError as e:
-        return handle_exception(e, 'error', 'register.html', status_code=500, form=form)
-    except Exception as e:
-        return handle_exception(e, 'error', 'register.html', status_code=500, form=form)
-    
+    current_app.auth_service.register(user_dto)
+    current_app.security_logger.log_successful_registration(user_dto)
+    current_app.email_service.send_confrimation_email(user_dto.email)
+    current_app.security_logger.log_confirm_email_sent(user_dto.email)
     return redirect_successfully('main.info','Go to your email to verify your account.', 'info' )
 
 def handle_reset_request(email):
-    email_service = current_app.email_service
-    
-    try:
-        email_service.send_reset_email(email)
-        return redirect_successfully('main.info','If an account with that email address exists, you will receive an email with instructions to reset your password.', 'info' )
-    except EntityNotFoundError as e:
-        return redirect_successfully('main.info','If an account with that email address exists, you will receive an email with instructions to reset your password.', 'info' )
-    except DatabaseServiceError as e:
-        return handle_exception(e, 'error', 'register.html', status_code=500)
-    except Exception as e:
-        return handle_exception(e, 'error', 'register.html', status_code=500)
+    current_app.email_service.send_reset_email(email)
+    current_app.security_logger.log_password_change_request(email)
+    return redirect_successfully('main.info','If an account with that email address exists, you will receive an email with instructions to reset your password.', 'info' )
 
 def handle_reset_password(token, form):
-    token_service = current_app.token_service
-    auth_service = current_app.auth_service
+    if form.validate_on_submit():
+        reset_password_dto = ResetPasswordDTO(password=form.password.data,token=token)
+        updated_user = current_app.auth_service.reset_password(reset_password_dto)
+        current_app.security_logger.log_successful_password_change(updated_user)
+        return redirect_successfully('auth.login')
 
-    try:
-        token_service.verify_reset_token(token)
-
-        if form.validate_on_submit():
-            reset_password_dto = ResetPasswordDTO(password=form.password.data,token=token)
-
-            updated_user = auth_service.reset_password(reset_password_dto)
-    
-            if updated_user:
-                return redirect_successfully('auth.login')
-            else:
-                return redirect_successfully('auth.reset_request')
-
-    except TokenException as e:
-       return redirect_successfully('auth.reset_request')
-    except EntityNotFoundError as e:
-        return redirect_successfully('auth.reset_request')
-    except DatabaseServiceError as e:
-        return handle_exception(e, 'error', 'reset_request.html', status_code=500)
-    except Exception as e:
-        return handle_exception(e, 'error', 'reset_request.html', status_code=500)
 
 def handle_confirm_email(token):
-    token_service = current_app.token_service
-
-    try:
-        token_service.verify_confirm_token(token)
-
-        flash('Your account has been successfully verified. You can now log in.', 'info')
-        return redirect(url_for('main.info'))
-    except (TokenException, EntityNotFoundError) as e:
-        return redirect_successfully('auth.login')
-    except DatabaseServiceError as e:
-         return handle_exception(e, 'error', 'login.html', status_code=500)
-    except Exception as e:
-        return handle_exception(e, 'error', 'login.html', status_code=500)
-
+    ret_token, ret_email = current_app.confirm_token_service.verify_confirm_token(token)
+    current_app.security_logger.log_successful_email_confirm(ret_token, ret_email)
+    flash('Your account has been successfully verified. You can now log in.', 'info')
+    return redirect(url_for('main.info'))
+   
 def handle_verify_otp(form, token):
-    user_service = current_app.user_service
-    otp_token_service = current_app.otp_token_service
-
     otp = (
             form.otp_1.data +
             form.otp_2.data +
@@ -158,28 +96,13 @@ def handle_verify_otp(form, token):
             form.otp_6.data
         )
 
-    try:
-        saved_otp = otp_token_service.verify_otp_token(token)
+    saved_otp = current_app.otp_token_service.verify_otp_token(token)
 
-        if saved_otp is None:
-            return redirect_successfully('main.info', 'The OTP is either invalid or expired.', 'error')
-
-        return saved_otp, otp
-    except SignatureExpired as e:
-        return redirect_successfully('main.info', 'The OTP has expired.', 'error')
-    except BadSignature as e:
-        return redirect_successfully('main.info', 'The OTP is invalid.', 'error')
-    except Exception as e:
-        return handle_exception(e, 'error', 'verify_otp.html', status_code=500)
+    if saved_otp is None:
+        return redirect_successfully('main.info', 'The OTP is either invalid or expired.', 'error')
+    return saved_otp, otp
     
-def handle_confirm_request(request_id, status):
-    author_requests_service = current_app.author_requests_service
-    try:
-        author_requests_service.update_request(request_id, status)
-        return redirect_successfully(url_for('main.dashboard'))
-    except (InvalidInputException, EntityNotFoundError) as e:
-         return handle_exception(e, 'error', 'dashboard.html', 400)
-    except DatabaseServiceError as e:
-         return handle_exception(e, 'error', 'dashboard.html', status_code=500)
-    except Exception as e:
-        return handle_exception(e, 'error', 'dashboard.html', status_code=500)
+def handle_confirm_request(request_id, status, admin_id):
+    user = current_app.author_requests_service.update_author_request(request_id, status)
+    current_app.security_logger.log_author_request_accepted(user.id, admin_id)
+    return redirect_successfully('main.dashboard')

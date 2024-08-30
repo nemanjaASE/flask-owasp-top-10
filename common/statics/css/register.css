@@ -140,3 +140,38 @@ li {
   font-weight: bold;
   margin-top: 10px;
 }
+
+.error-message {
+  color: #dc3545;
+  font-size: 12px;
+  max-width: 250px;
+  margin-top: 5px;
+  margin-left: -35px;
+  list-style-type: none;
+}
+
+.flashes {
+  list-style: none;
+  padding: 0;
+}
+
+.flashes li {
+  border-radius: 5px;
+}
+
+.success {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.info {
+  background-color: #17a2b8;
+  color: #fff;
+}
+
+.error,
+.message {
+  color: #dc3545;
+  font-size: 14px;
+  max-width: 310px;
+}

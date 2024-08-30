@@ -23,14 +23,12 @@ class RegistrationForm(FlaskForm):
     username = StringField('Username', validators=[
         DataRequired(),
         Length(max=24), 
-        Regexp(r'^[\w]+$', message='Username can only contain letters, numbers, and underscores'),
-        validate_username])
+        Regexp(r'^[\w]+$', message='Username can only contain letters, numbers, and underscores')])
     
     email = StringField('Email', validators=[
         DataRequired(), 
         Length(max=32),
-        Email(), 
-        validate_email])
+        Email()])
     
     password = PasswordField('Password', validators=[
         DataRequired(),

@@ -1,15 +1,41 @@
 from app.repositories.author_requests_repository import AuthorRequestsRepository
-from app.repositories.user_repository import UserRepository
+from app.repositories import UserRepository
 from app.models.author_requests import AuthorRequests
 from app.services.exceptions import *
 from app.repositories.exceptions import *
 
-from typing import List
+from app.db import db
+from sqlalchemy.exc import SQLAlchemyError
+from typing import List, Optional
 
 class AuthorRequestsService:
     def __init__(self, author_requests_repository: AuthorRequestsRepository, user_repository: UserRepository) -> None:
         self.author_requests_repository = author_requests_repository
         self.user_repository = user_repository
+
+    def get_author_request(self, request_id: str) -> Optional[AuthorRequests]:
+        """
+        Retrieves a author request by their ID.
+
+        Args:
+            author_id (str): The ID of the author request to retrieve.
+
+        Returns:
+            Optional[AuthorRequests]: The request object if found, otherwise None.
+
+        Raises:
+            InvalidInputException: If the request_id is invalid or missing.
+            EntityNotFoundError: If the request is not found.
+            DatabaseServiceError: If there is a database error.
+        """
+        try:
+            request = self.author_requests_repository.get_by_id(request_id)
+            return request
+        except NotFoundError as e:
+            raise EntityNotFoundError("AuthorRequest", "ID", request_id)
+        except DatabaseError as e:
+            raise DatabaseServiceError(e) from e
+
 
     def create_author_request(self, user_id: str) -> AuthorRequests:
         """
@@ -74,32 +100,27 @@ class AuthorRequestsService:
             return self.author_requests_repository.get_all()
         except DatabaseError as e:
             raise DatabaseServiceError(e) from e
-        
-    def update_request(self, request_id: str, status: str) -> AuthorRequests:
+
+    def update_author_request(self, request_id: str, status: str) -> AuthorRequests:
         """
-        Updates the fields of a AuthorRequests.
+        Updates the fields of a author requests.
 
         Args:
-            request_id (str): The request ID.
-            status (str): The status of the request
+             request_id (str): The request ID
+             status (str): The status of the transaction
 
         Returns:
-            AuthorRequests: The updated author request object.
+            AuthorRequest: The updated request object.
 
         Raises:
-            InvalidParameterException: If the user id or status is invalid or missing.
-            EntityNotFoundError: If the user is not found by the given ID.
+            InvalidInputException: If the request_id or status is invalid or missing.
+            EntityNotFoundError: If the request is not found by the given ID.
             DatabaseServiceError: If there is a database error.
         """
-        if not request_id:
-            raise InvalidInputException("update request id", "Invalid or missing parameter")
-        if not status:
-            raise InvalidInputException("update status", "Invalid or missing parameter")
-
         try:
-            return self.author_requests_repository.update_request(request_id, status)
-            
+           
+            return self.author_requests_repository.update_request(request_id, status=status)
         except NotFoundError as e:
-            raise EntityNotFoundError("User", "ID", request_id) from e
+            raise EntityNotFoundError("AuthorRequest", "ID", request_id) from e
         except DatabaseError as e:
             raise DatabaseServiceError(e) from e

@@ -1,23 +1,21 @@
-from app.services.user_service import UserService
-from app.services.token_service import TokenService
-from app.services.email_service import EmailService
-
-from app.utils import password_utils
-from app.models.user import User
-from app.dto.user_dto import UserRegistrationDTO
-from app.dto.reset_password_dto import ResetPasswordDTO
-
+from app.services import (UserService, ResetTokenService, EmailService)
 from app.services.exceptions import *
 from app.services.validators.login_user_validator import LoginUserValidator
 from app.services.validators.register_user_validator import RegisterUserValidator
 from app.services.validators. register_user_validator import BaseUserValidator
 
+from app.utils import password_utils
+from app.models.user import User
+from app.dto.user_dto import UserRegistrationDTO
+from app.dto.reset_password_dto import ResetPasswordDTO
+from sqlalchemy.exc import SQLAlchemyError
+from app.db import transaction
 from typing import Optional
 
 class AuthService:
-    def __init__(self, user_service: UserService, token_service: TokenService, email_service: EmailService, redis_client):
+    def __init__(self, user_service: UserService, reset_token_service: ResetTokenService, email_service: EmailService, redis_client):
         self.user_service = user_service
-        self.token_service = token_service
+        self.reset_token_service = reset_token_service
         self.email_service = email_service
         self.redis_client = redis_client
 
@@ -51,14 +49,14 @@ class AuthService:
         try:
             user = self.user_service.get_user_by_email(email)
             if not user.is_verified:
-                raise AccountNotVerifiedError()
+                raise AccountNotVerifiedError(email)
 
             user_id = user.id
             lockout_key = f"lockout:{user_id}"
             failed_attempts_key = f"failed_attempts:{user_id}"
 
             if self.redis_client.get(lockout_key):
-                raise AccountLockedException()
+                raise AccountLockedException(email)
 
             if password_utils.check_password(password, user.password):
                 self.redis_client.delete(failed_attempts_key)
@@ -67,8 +65,8 @@ class AuthService:
                 failed_attempts = self.redis_client.incr(failed_attempts_key)
                 if failed_attempts >= 5:
                     self.redis_client.set(lockout_key, "locked", ex=15*60)
-                    raise AccountLockedException()
-                raise InvalidPasswordException('Password does not match')
+                    raise AccountLockedException(email)
+                raise InvalidPasswordException(email, 'Password does not match')
 
         except (InvalidInputException, EntityNotFoundError, DatabaseServiceError, Exception) as e:
             raise e
@@ -85,9 +83,10 @@ class AuthService:
 
         Raises:
             InvalidInputException: If the user_dto or any of its values are invalid or missing.
-            InvalidPasswordException: If the password does not meet the required length.
             DuplicateEmailException: If the email is already in use.
             DatabaseServiceError: If there is a database error.
+            EmailAlreadyExistsException: If the user with provided email already exists
+            UsernameAlreadyExistsException: If the user with provided username already exists
         """
 
         msg = RegisterUserValidator.validate(user_dto.__dict__)
@@ -99,7 +98,7 @@ class AuthService:
             new_user = self.user_service.create_user(user_dto)
 
             return new_user
-        except (InvalidInputException, DuplicateEmailException, DatabaseServiceError, Exception) as e:
+        except (InvalidInputException,UsernameAlreadyExistsException, EmailAlreadyExistsException, DatabaseServiceError, Exception) as e:
             raise e
 
     def reset_password(self, reset_password_dto: ResetPasswordDTO) -> User:
@@ -114,23 +113,29 @@ class AuthService:
 
         Raises:
             InvalidInputException: If the reset_password_dto or any of its values are invalid or missing.
-            ResetTokenException: If there is an error with the reset token.
+            TokenException: If there is an error with the reset token.
             EntityNotFoundError: If the user is not found by the email associated with the token.
             DatabaseServiceError: If there is a database error.
         """
         msg = BaseUserValidator.validate_password(reset_password_dto.password)
 
         if msg:
-            raise InvalidInputException("password",'Invalid or missing input.')
-        
+            raise InvalidInputException("password", 'Nevalidan ili nedostajući unos.')
+
         token_str = reset_password_dto.token
         password = reset_password_dto.password
 
         try:
-            token, email = self.token_service.verify_reset_token(token_str)
-            user = self.user_service.get_user_by_email(email)
-            updated_user = self.user_service.update_password(user.id, password)
-            self.token_service.set_reset_used(token)
+            with transaction():
+                token, email = self.reset_token_service.verify_reset_token(token_str)
+                user = self.user_service.get_user_by_email(email)
+
+                updated_user = self.user_service.update_password(user.id, password)
+                self.reset_token_service.set_reset_used(token)
+
             return updated_user
-        except (InvalidInputException, EntityNotFoundError, DatabaseServiceError, Exception) as e:
+
+        except (TokenException, InvalidInputException, EntityNotFoundError) as e:
             raise e
+        except SQLAlchemyError as e:
+            raise DatabaseServiceError("An error occurred while updating the request.") from e

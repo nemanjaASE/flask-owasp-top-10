@@ -1,10 +1,12 @@
-class DuplicateEmailException(Exception):
-    def __init__(self, message="Email already exists."):
+class EmailAlreadyExistsException(Exception):
+    def __init__(self, email, message="Email already exists."):
+        self.email = email
         self.message = message
         super().__init__(self.message)
 
 
-class DuplicateUsernameException(Exception):
-    def __init__(self, message="Username already exists."):
+class UsernameAlreadyExistsException(Exception):
+    def __init__(self, username, message="Username already exists."):
+        self.username = username
         self.message = message
         super().__init__(self.message)
