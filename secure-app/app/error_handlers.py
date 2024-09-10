@@ -13,6 +13,11 @@ def register_error_handlers(app):
                 app.security_logger.log_access_denied(current_user)
         return render_template('403.html'), 403
 
+    @app.errorhandler(500)
+    def internal_server_error(e):
+        current_app.logger.error(f"Internal Server Error: {e}")
+        return render_template('500.html', error=str(e)), 500
+
     @app.errorhandler(Exception)
     def handle_unhandled_exception(e):
         current_app.security_logger.log_unhandled_exception(e)
